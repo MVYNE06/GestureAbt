@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gesture Controls Project</title>
+    
     <!-- Tailwind CSS for high-end tech styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Official Spline Viewer script matching your exact version -->
+    <!-- Official Spline Viewer -->
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js"></script>
     
     <!-- MediaPipe Machine Learning Libraries for Hand Tracking -->
@@ -16,9 +17,10 @@
 
     <style>
         body {
-            background-color: #0b0b0f;
-            color: #f3f4f6;
+            background-color: #f8fafc; /* Light slate background */
+            color: #0f172a; /* Dark slate text */
         }
+        
         /* Smooth movement for the tracking dot and the box */
         #cursor, #draggable-box {
             transition: top 0.05s linear, left 0.05s linear, transform 0.1s ease;
@@ -26,204 +28,257 @@
         
         /* Custom scrollbar for the gesture list */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
+            background: #f1f5f9;
+            border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: #cbd5e1;
             border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #4B5563;
+            background: #94a3b8;
+        }
+        
+        /* Glassmorphism utilities for light theme */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 1);
         }
     </style>
 </head>
-<body class="font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+<body class="font-sans min-h-screen flex flex-col selection:bg-blue-200 selection:text-blue-900">
 
     <!-- Header / Navbar -->
-    <header class="border-b border-gray-800/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl w-full mx-auto">
-        <h1 class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase">
+    <header class="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center w-full shadow-sm">
+        <h1 class="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 uppercase">
             Gesture Controls
         </h1>
-        <span class="px-3 py-1 text-xs font-semibold tracking-wide text-cyan-400 bg-cyan-950/50 border border-cyan-800/60 rounded-full animate-pulse">
-            System Live
-        </span>
+        <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span class="text-xs font-bold tracking-widest text-emerald-600 uppercase">System Live</span>
+        </div>
     </header>
 
-    <!-- Main Hero Section -->
-    <main class="max-w-7xl w-full mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center flex-grow">
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-24">
         
-        <!-- Left Column: Project Overview & Gesture Meanings -->
-        <div class="lg:col-span-5 space-y-6 order-2 lg:order-1 flex flex-col h-full">
-            <div class="space-y-2">
-                <h2 class="text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    Touchless System <br>
-                    <span class="text-indigo-400">Demonstration</span>
+        <!-- SECTION 1: TOP SPLINE HERO (Now a sleek, smooth banner) -->
+        <!-- Added will-change property for GPU acceleration to fix choppiness -->
+        <section id="spline-hero" class="w-full flex flex-col items-center z-0 origin-top" style="will-change: transform, opacity;">
+            <div class="text-center mb-8 space-y-3">
+                <h2 class="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900">
+                    Touchless <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Interaction</span>
                 </h2>
+                <p class="text-slate-500 max-w-2xl mx-auto text-lg font-medium">
+                    Interact with your digital environment using intuitive, camera-tracked hand movements.
+                </p>
             </div>
             
-            <p class="text-gray-400 leading-relaxed text-lg">
-                Our application utilizes computer vision to translate standard hand gestures into immediate system commands. By mapping physical movements to digital outputs, users can seamlessly control interfaces without physical contact.
-            </p>
+            <!-- 3D Hand Model Container (Now a wide, smaller rectangle) -->
+            <div class="w-full max-w-5xl h-[250px] md:h-[350px] lg:h-[400px] rounded-[2rem] overflow-hidden relative shadow-lg border border-slate-200 bg-white group">
+                <!-- Subtle background glow -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-blue-50 to-cyan-50 pointer-events-none"></div>
+                <!-- Spline Viewer -->
+                <spline-viewer loading-anim-type="spinner-small-dark" url="https://prod.spline.design/iYnhrhxii0kTF4VT/scene.splinecode"></spline-viewer>
+            </div>
+        </section>
 
-            <!-- Gesture Explanation Cards (SCROLLABLE CONTAINER) -->
-            <div class="pt-2">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Active Gesture Guide</h3>
+        <!-- SECTION 2: INTERACTIVE VIDEO SHOWCASE -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 bg-[#f8fafc]">
+            
+            <!-- Left Column: Gesture Selectors -->
+            <div class="lg:col-span-5 flex flex-col h-full max-h-[600px]">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 pl-2">Select a Gesture</h3>
                 
-                <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    
-                    <!-- Gesture 1: Cursor Mode -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg shrink-0 text-xl">☝️</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Cursor Mode (Index finger up)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.</p>
-                            <video src="videos/cursor_mode.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing Index finger up for Cursor Mode" title="Cursor Mode Video">
-                                <span class="sr-only">Alt text: Video demonstration of a hand with index finger up moving the cursor</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 2: Single Click -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg shrink-0 text-xl">👌</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Single Click (Pinch + 3 fingers up)</h4>
-                            <p class="text-xs text-gray-400 mt-1">A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.</p>
-                            <video src="videos/single_click.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing a pinch with 3 back fingers up for a single left click" title="Single Click Video">
-                                <span class="sr-only">Alt text: Video demonstration of tapping the thumb and index finger together while 3 back fingers are raised</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 3: Double Click -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg shrink-0 text-xl">👌👌</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Double Click (Double pinch)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Two quick taps with the thumb and index finger to execute a double-click command.</p>
-                            <video src="videos/double_click.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing a double pinch for a double click" title="Double Click Video">
-                                <span class="sr-only">Alt text: Video demonstration of tapping the thumb and index finger together twice quickly</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 4: Drag & Drop -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-green-500/10 text-green-400 rounded-lg shrink-0 text-xl">🤏</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Drag & Drop (Hold pinch)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.</p>
-                            <video src="videos/drag_drop.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing holding a pinch to drag an object and releasing to drop it" title="Drag & Drop Video">
-                                <span class="sr-only">Alt text: Video demonstration of holding the thumb and index finger together to drag an item, then releasing</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 5: Scroll Mode -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-yellow-500/10 text-yellow-400 rounded-lg shrink-0 text-xl">✌️</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Scroll Mode (Index & Middle up)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.</p>
-                            <video src="videos/scroll_mode.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing index and middle fingers up moving up and down to scroll" title="Scroll Mode Video">
-                                <span class="sr-only">Alt text: Video demonstration of the index and middle fingers raised, hand moving vertically to scroll</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 6: Screenshot -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-pink-500/10 text-pink-400 rounded-lg shrink-0 text-xl">🤙</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Screenshot (Shaka gesture)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.</p>
-                            <video src="videos/screenshot.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing a Shaka gesture with thumb and pinky out to take a screenshot" title="Screenshot Video">
-                                <span class="sr-only">Alt text: Video demonstration of the thumb and pinky extended to trigger a screenshot</span>
-                            </video>
-                        </div>
-                    </div>
-
-                    <!-- Gesture 7: Frozen / Idle -->
-                    <div class="flex items-start gap-4 p-4 bg-gray-900/30 border border-gray-800/80 rounded-xl">
-                        <div class="p-2 bg-red-500/10 text-red-400 rounded-lg shrink-0 text-xl">✋</div>
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-semibold text-white">Frozen / Idle (Unknown gesture)</h4>
-                            <p class="text-xs text-gray-400 mt-1">Instantly freezes the cursor and safely drops any active drags if the tracking is lost.</p>
-                            <video src="videos/idle.mp4" class="w-full h-24 object-cover mt-3 rounded-lg bg-gray-800/50 border border-gray-700/50" autoplay loop muted playsinline aria-label="Video showing an open palm or unknown gesture freezing the system" title="Frozen Idle Video">
-                                <span class="sr-only">Alt text: Video demonstration of an open hand stopping all system movement</span>
-                            </video>
-                        </div>
-                    </div>
-
+                <div class="flex-grow overflow-y-auto custom-scrollbar pr-3 space-y-3" id="gesture-list">
+                    <!-- Buttons are generated by JavaScript to keep HTML clean. -->
                 </div>
             </div>
 
-            <!-- LIVE CAMERA TRACKING DEMO BOX -->
-            <div class="pt-6 mt-auto">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Live Tracking Feed</h3>
-                <div id="demo-container" class="relative w-full aspect-video bg-gray-950 border border-gray-800/80 rounded-xl overflow-hidden ring-1 ring-white/5 shadow-lg">
+            <!-- Right Column: Big Video Display -->
+            <div class="lg:col-span-7 h-full">
+                <div class="glass-panel rounded-[2rem] p-6 lg:p-8 h-full flex flex-col shadow-xl relative overflow-hidden">
+                    <!-- Decorative background blur -->
+                    <div class="absolute -top-32 -right-32 w-80 h-80 bg-blue-100 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <!-- Dynamic Text Content -->
+                    <div class="mb-6 relative z-10">
+                        <div class="flex items-center gap-5 mb-3">
+                            <span id="display-icon" class="text-4xl bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-slate-800">☝️</span>
+                            <div>
+                                <h3 id="display-title" class="text-3xl font-extrabold text-slate-900">Cursor Mode</h3>
+                                <p id="display-subtitle" class="text-sm font-bold text-blue-600 tracking-wide uppercase mt-1">Index finger up</p>
+                            </div>
+                        </div>
+                        <p id="display-desc" class="text-slate-600 text-base leading-relaxed pl-1">Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.</p>
+                    </div>
+
+                    <!-- Dynamic Large Video Player -->
+                    <div class="flex-grow w-full bg-slate-900 rounded-2xl border-4 border-white shadow-lg overflow-hidden relative z-10 min-h-[350px]">
+                        <video id="display-video" src="videos/cursor_mode.mp4" class="w-full h-full object-cover" autoplay loop muted playsinline></video>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- SECTION 3: LIVE TRACKING DEMO -->
+        <section class="w-full pb-8 relative z-10 bg-[#f8fafc]">
+            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 text-center">Live Tracking Sandbox</h3>
+            
+            <div class="max-w-5xl mx-auto">
+                <div id="demo-container" class="relative w-full aspect-video bg-slate-900 border-4 border-white rounded-[2.5rem] overflow-hidden shadow-2xl">
                     
                     <!-- Loading Overlay -->
-                    <div id="loading" class="absolute inset-0 flex items-center justify-center text-sm font-medium text-cyan-400 animate-pulse bg-gray-900/90 z-20">
-                        Initializing Camera & AI Model...
+                    <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 z-40 backdrop-blur-md">
+                        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="text-sm font-bold text-blue-400 tracking-widest uppercase">Initializing AI Model...</p>
                     </div>
 
                     <!-- RESET BUTTON -->
-                    <button id="reset-btn" class="absolute top-4 right-4 z-40 bg-gray-800 hover:bg-gray-700 text-xs text-white font-semibold py-1.5 px-3 rounded-lg border border-gray-600 transition-colors shadow-lg cursor-pointer">
-                        Reset Box
+                    <button id="reset-btn" class="absolute top-6 right-6 z-30 bg-white/10 hover:bg-white/20 text-xs text-white font-bold tracking-widest py-2.5 px-5 rounded-xl border border-white/20 transition-all shadow-lg backdrop-blur-md">
+                        RESET BOX
                     </button>
 
                     <!-- DROP ZONE -->
-                    <div id="drop-zone" class="absolute w-32 h-32 border-4 border-dashed border-gray-600 rounded-2xl flex items-center justify-center text-gray-500 font-bold z-10 bottom-6 right-6 transition-all duration-200">
-                        Drop Here
+                    <div id="drop-zone" class="absolute w-32 h-32 border-2 border-dashed border-slate-500 rounded-3xl flex items-center justify-center text-slate-400 font-bold z-10 bottom-8 right-8 transition-all duration-300 bg-slate-800/50 backdrop-blur-sm">
+                        DROP HERE
                     </div>
 
                     <!-- DRAGGABLE BOX -->
-                    <div id="draggable-box" class="absolute w-20 h-20 bg-indigo-500 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] z-20 top-6 left-6 select-none">
-                        Drag Me
+                    <div id="draggable-box" class="absolute w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-[0_0_30px_rgba(56,189,248,0.5)] z-20 top-8 left-8 select-none border border-white/30 transition-transform">
+                        DRAG ME
                     </div>
                     
-                    <!-- Mirrored Video Feed (Low Opacity) -->
-                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-30 scale-x-[-1]" autoplay playsinline></video>
+                    <!-- Mirrored Video Feed -->
+                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-30 scale-x-[-1] mix-blend-screen" autoplay playsinline></video>
                     
                     <!-- Glowing Tracking Cursor -->
-                    <div id="cursor" class="absolute w-5 h-5 bg-cyan-400 rounded-full shadow-[0_0_20px_rgba(34,211,238,1)] pointer-events-none transform -translate-x-1/2 -translate-y-1/2 opacity-0 z-30"></div>
-                
+                    <div id="cursor" class="absolute w-6 h-6 bg-cyan-400 rounded-full shadow-[0_0_25px_rgba(34,211,238,1)] pointer-events-none transform -translate-x-1/2 -translate-y-1/2 opacity-0 z-30 border-2 border-white"></div>
                 </div>
             </div>
-
-        </div>
-
-        <!-- Right Column: The 3D Interactive Mascot Container -->
-        <div class="lg:col-span-7 w-full h-[450px] lg:h-[850px] bg-gradient-to-b from-gray-900/40 to-gray-950/40 border border-gray-800 rounded-3xl overflow-hidden relative group shadow-2xl order-1 lg:order-2">
-            <div class="absolute inset-0 bg-indigo-500/5 opacity-100 pointer-events-none"></div>
-            <spline-viewer url="https://prod.spline.design/RNZpgLKgS4EJssQk/scene.splinecode"></spline-viewer>
-        </div>
+        </section>
 
     </main>
 
     <!-- Team Section Footer -->
-    <footer class="bg-gray-950/80 border-t border-gray-900 py-10 px-6 mt-12">
-        <div class="max-w-7xl w-full mx-auto space-y-6">
-            <div class="text-center lg:text-left">
-                <h3 class="text-sm font-semibold tracking-widest text-gray-400 uppercase">Project Contributors</h3>
+    <footer class="w-full bg-white border-t border-slate-200 pt-12 pb-10 px-6 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.02)]">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-8">
+                <h3 class="text-xs font-black tracking-[0.2em] text-slate-400 uppercase">Project Engineered By</h3>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Shane</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Aditya</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Aaron</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Vinay</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Risha</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Jeslin</p></div>
-                <div class="bg-gray-900/50 border border-gray-800/60 p-4 rounded-xl text-center hover:border-indigo-500/40 transition-colors duration-200"><p class="text-sm font-medium text-white">Jasmin</p></div>
+            
+            <!-- Team Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Shane</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Aditya</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Aaron</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Vinay</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Risha</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Jeslin</p></div>
+                <div class="bg-slate-50 border border-slate-100 py-4 px-2 rounded-2xl text-center hover:bg-blue-50 hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 cursor-default shadow-sm"><p class="text-sm font-bold text-slate-700 tracking-wide">Jasmin</p></div>
             </div>
         </div>
     </footer>
 
-    <!-- GESTURE TRACKING SCRIPT -->
+    <!-- SMOOTH SCROLL PARALLAX SCRIPT (60fps Optimized) -->
+    <script>
+        const splineHero = document.getElementById('spline-hero');
+        let isTicking = false;
+
+        window.addEventListener('scroll', () => {
+            if (!isTicking) {
+                // requestAnimationFrame forces the browser to calculate the animation right before the screen repaints (usually 60 times a second), removing all choppiness
+                window.requestAnimationFrame(() => {
+                    const scrollY = window.scrollY;
+                    
+                    // Fades out completely by the time you scroll 350px down
+                    const opacity = Math.max(0, 1 - (scrollY / 350));
+                    
+                    // Shrinks very slightly for depth
+                    const scale = Math.max(0.95, 1 - (scrollY / 2000));
+                    
+                    // Parallax: Moves the container down slightly as you scroll up, making it feel like it's drifting smoothly into the background
+                    const translateY = scrollY * 0.4;
+                    
+                    splineHero.style.opacity = opacity;
+                    splineHero.style.transform = `translateY(${translateY}px) scale(${scale})`;
+                    
+                    // Disable interactions when faded so it doesn't block the video section clicks
+                    if (opacity < 0.05) {
+                        splineHero.style.pointerEvents = 'none';
+                    } else {
+                        splineHero.style.pointerEvents = 'auto';
+                    }
+                    
+                    isTicking = false;
+                });
+                isTicking = true;
+            }
+        }, { passive: true }); // passive: true tells the browser we aren't stopping the scroll, which boosts performance
+    </script>
+
+    <!-- INTERACTIVE UI SCRIPT -->
+    <script>
+        const gestures = [
+            { id: 'cursor', title: 'Cursor Mode', sub: 'Index finger up', icon: '☝️', video: 'videos/cursor_mode.mp4', desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
+            { id: 'single', title: 'Single Click', sub: 'Pinch + 3 fingers up', icon: '👌', video: 'videos/single_click.mp4', desc: 'A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.' },
+            { id: 'double', title: 'Double Click', sub: 'Double pinch', icon: '👌👌', video: 'videos/double_click.mp4', desc: 'Two quick taps with the thumb and index finger to execute a double-click command.' },
+            { id: 'drag', title: 'Drag & Drop', sub: 'Hold pinch', icon: '🤏', video: 'videos/drag_drop.mp4', desc: 'Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.' },
+            { id: 'scroll', title: 'Scroll Mode', sub: 'Index & Middle up', icon: '✌️', video: 'videos/scroll_mode.mp4', desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
+            { id: 'screenshot', title: 'Screenshot', sub: 'Shaka gesture', icon: '🤙', video: 'videos/screenshot.mp4', desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
+            { id: 'idle', title: 'Frozen / Idle', sub: 'Unknown gesture', icon: '✋', video: 'videos/idle.mp4', desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' }
+        ];
+
+        const listContainer = document.getElementById('gesture-list');
+        const displayIcon = document.getElementById('display-icon');
+        const displayTitle = document.getElementById('display-title');
+        const displaySubtitle = document.getElementById('display-subtitle');
+        const displayDesc = document.getElementById('display-desc');
+        const displayVideo = document.getElementById('display-video');
+
+        // Render buttons and add click logic
+        gestures.forEach((gesture, index) => {
+            const btn = document.createElement('button');
+            
+            const activeClasses = 'bg-white border-blue-200 shadow-lg scale-[1.02] ring-1 ring-blue-100';
+            const inactiveClasses = 'bg-white/50 border-slate-200 hover:bg-white hover:border-slate-300 hover:shadow-md';
+            
+            btn.className = `w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center gap-5 ${index === 0 ? activeClasses : inactiveClasses}`;
+            
+            btn.innerHTML = `
+                <div class="p-3 bg-slate-50 rounded-xl text-xl shrink-0 border border-slate-100">${gesture.icon}</div>
+                <div>
+                    <h4 class="text-base font-bold text-slate-800 tracking-wide">${gesture.title}</h4>
+                    <p class="text-xs font-semibold text-slate-500 mt-1">${gesture.sub}</p>
+                </div>
+            `;
+
+            btn.addEventListener('click', () => {
+                Array.from(listContainer.children).forEach(child => {
+                    child.className = `w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center gap-5 ${inactiveClasses}`;
+                });
+                
+                btn.className = `w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center gap-5 ${activeClasses}`;
+                
+                displayIcon.textContent = gesture.icon;
+                displayTitle.textContent = gesture.title;
+                displaySubtitle.textContent = gesture.sub;
+                displayDesc.textContent = gesture.desc;
+                displayVideo.src = gesture.video;
+            });
+
+            listContainer.appendChild(btn);
+        });
+    </script>
+
+    <!-- MEDIAPIPE TRACKING SCRIPT -->
     <script>
         const videoElement = document.getElementById('input_video');
         const cursor = document.getElementById('cursor');
@@ -242,39 +297,27 @@
             draggableBox.style.left = '';
             draggableBox.style.top = '';
             
-            dropZone.className = "absolute w-32 h-32 border-4 border-dashed border-gray-600 rounded-2xl flex items-center justify-center text-gray-500 font-bold z-10 bottom-6 right-6 transition-all duration-200";
-            dropZone.innerHTML = "Drop Here";
+            dropZone.className = "absolute w-32 h-32 border-2 border-dashed border-slate-500 rounded-3xl flex items-center justify-center text-slate-400 font-bold z-10 bottom-8 right-8 transition-all duration-300 bg-slate-800/50 backdrop-blur-sm";
+            dropZone.innerHTML = "DROP HERE";
         });
 
-        // Helper function
         function isOverlapping(rect1, rect2) {
-            return !(
-                rect1.right < rect2.left || 
-                rect1.left > rect2.right || 
-                rect1.bottom < rect2.top || 
-                rect1.top > rect2.bottom
-            );
+            return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
         }
 
-        // Initialize MediaPipe Hands
-        const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        });
+        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
 
-        hands.setOptions({
-            maxNumHands: 1, 
-            modelComplexity: 1, 
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6
-        });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
-        // Process Tracking Data
         hands.onResults((results) => {
-            loadingText.style.display = 'none'; 
+            if(loadingText.style.opacity !== '0') {
+                loadingText.style.transition = 'opacity 0.5s';
+                loadingText.style.opacity = '0';
+                setTimeout(() => loadingText.style.display = 'none', 500);
+            }
             
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const hand = results.multiHandLandmarks[0];
-                
                 const indexTip = hand[8]; 
                 const thumbTip = hand[4]; 
                 
@@ -285,15 +328,12 @@
                 cursor.style.top = `${cursorY}px`;
                 cursor.style.opacity = '1';
 
-                const dx = indexTip.x - thumbTip.x;
-                const dy = indexTip.y - thumbTip.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
+                const distance = Math.sqrt(Math.pow(indexTip.x - thumbTip.x, 2) + Math.pow(indexTip.y - thumbTip.y, 2));
                 const isPinching = distance < PINCH_THRESHOLD;
 
                 if (isPinching) {
                     cursor.style.backgroundColor = '#ef4444'; 
-                    cursor.style.boxShadow = '0 0 20px rgba(239, 68, 68, 1)';
+                    cursor.style.boxShadow = '0 0 25px rgba(239, 68, 68, 1)';
 
                     const boxRect = draggableBox.getBoundingClientRect();
                     const containerRect = demoContainer.getBoundingClientRect();
@@ -302,54 +342,44 @@
                     const absoluteCursorX = containerRect.left + cursorX;
                     const absoluteCursorY = containerRect.top + cursorY;
 
-                    if (
-                        isDragging || 
-                        (absoluteCursorX >= boxRect.left && absoluteCursorX <= boxRect.right &&
-                         absoluteCursorY >= boxRect.top && absoluteCursorY <= boxRect.bottom)
-                    ) {
+                    if (isDragging || (absoluteCursorX >= boxRect.left && absoluteCursorX <= boxRect.right && absoluteCursorY >= boxRect.top && absoluteCursorY <= boxRect.bottom)) {
                         isDragging = true;
                         
                         let newX = cursorX - (draggableBox.offsetWidth / 2);
                         let newY = cursorY - (draggableBox.offsetHeight / 2);
-                        
                         newX = Math.max(0, Math.min(newX, demoContainer.offsetWidth - draggableBox.offsetWidth));
                         newY = Math.max(0, Math.min(newY, demoContainer.offsetHeight - draggableBox.offsetHeight));
 
                         draggableBox.style.left = `${newX}px`;
                         draggableBox.style.top = `${newY}px`;
-                        draggableBox.style.transform = 'scale(1.1)'; 
+                        draggableBox.style.transform = 'scale(1.05)'; 
 
                         if (isOverlapping(boxRect, zoneRect)) {
-                            dropZone.className = "absolute w-32 h-32 border-4 border-cyan-400 bg-cyan-900/30 rounded-2xl flex items-center justify-center text-cyan-400 font-bold z-10 bottom-6 right-6 transition-all duration-200 scale-105";
+                            dropZone.className = "absolute w-32 h-32 border-4 border-cyan-400 bg-cyan-900/60 backdrop-blur-md rounded-3xl flex items-center justify-center text-cyan-300 font-bold z-10 bottom-8 right-8 transition-all duration-200 scale-105 shadow-[0_0_30px_rgba(34,211,238,0.3)]";
                         } else {
-                            dropZone.className = "absolute w-32 h-32 border-4 border-dashed border-gray-600 rounded-2xl flex items-center justify-center text-gray-500 font-bold z-10 bottom-6 right-6 transition-all duration-200";
-                            dropZone.innerHTML = "Drop Here";
+                            dropZone.className = "absolute w-32 h-32 border-2 border-dashed border-slate-500 rounded-3xl flex items-center justify-center text-slate-400 font-bold z-10 bottom-8 right-8 transition-all duration-300 bg-slate-800/50 backdrop-blur-sm";
+                            dropZone.innerHTML = "DROP HERE";
                         }
                     }
                 } else {
-                    
                     if (isDragging) {
                         const boxRect = draggableBox.getBoundingClientRect();
                         const zoneRect = dropZone.getBoundingClientRect();
 
                         if (isOverlapping(boxRect, zoneRect)) {
-                            dropZone.className = "absolute w-32 h-32 border-4 border-green-500 bg-green-900/30 rounded-2xl flex items-center justify-center text-green-500 font-bold z-10 bottom-6 right-6 transition-all duration-200";
-                            dropZone.innerHTML = "Success!";
-                            
-                            const dropCenterX = dropZone.offsetLeft + (dropZone.offsetWidth / 2);
-                            const dropCenterY = dropZone.offsetTop + (dropZone.offsetHeight / 2);
-                            
-                            draggableBox.style.left = `${dropCenterX - (draggableBox.offsetWidth / 2)}px`;
-                            draggableBox.style.top = `${dropCenterY - (draggableBox.offsetHeight / 2)}px`;
+                            dropZone.className = "absolute w-32 h-32 border-4 border-emerald-400 bg-emerald-900/60 backdrop-blur-md rounded-3xl flex items-center justify-center text-emerald-300 font-bold z-10 bottom-8 right-8 transition-all duration-300 shadow-[0_0_30px_rgba(52,211,153,0.4)]";
+                            dropZone.innerHTML = "SUCCESS";
+                            draggableBox.style.left = `${dropZone.offsetLeft + (dropZone.offsetWidth / 2) - (draggableBox.offsetWidth / 2)}px`;
+                            draggableBox.style.top = `${dropZone.offsetTop + (dropZone.offsetHeight / 2) - (draggableBox.offsetHeight / 2)}px`;
                         } else {
-                            dropZone.className = "absolute w-32 h-32 border-4 border-dashed border-gray-600 rounded-2xl flex items-center justify-center text-gray-500 font-bold z-10 bottom-6 right-6 transition-all duration-200";
-                            dropZone.innerHTML = "Drop Here";
+                            dropZone.className = "absolute w-32 h-32 border-2 border-dashed border-slate-500 rounded-3xl flex items-center justify-center text-slate-400 font-bold z-10 bottom-8 right-8 transition-all duration-300 bg-slate-800/50 backdrop-blur-sm";
+                            dropZone.innerHTML = "DROP HERE";
                         }
                     }
 
                     isDragging = false;
                     cursor.style.backgroundColor = '#22d3ee'; 
-                    cursor.style.boxShadow = '0 0 20px rgba(34, 211, 238, 1)';
+                    cursor.style.boxShadow = '0 0 25px rgba(34, 211, 238, 1)';
                     draggableBox.style.transform = 'scale(1)'; 
                 }
             } else {
@@ -359,15 +389,7 @@
             }
         });
 
-        // Initialize and start the webcam
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({ image: videoElement });
-            },
-            width: 640,
-            height: 480
-        });
-        
+        const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({ image: videoElement }); }, width: 640, height: 480 });
         camera.start();
     </script>
 </body>
