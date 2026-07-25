@@ -21,8 +21,10 @@
             color: #0f172a; 
         }
         
+        /* MOBILE PERFORMANCE FIX: Removed top/left transitions to stop layout thrashing. Added will-change for GPU Hardware Acceleration */
         #cursor, #draggable-box {
-            transition: top 0.05s linear, left 0.05s linear, transform 0.1s ease;
+            transition: transform 0.1s ease, background-color 0.2s, box-shadow 0.2s;
+            will-change: transform, top, left;
         }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -117,8 +119,8 @@
             <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 sm:mb-6 text-center">Live Tracking Sandbox</h3>
             
             <div class="max-w-5xl mx-auto">
-                <!-- MOBILE FIX: Explicit tall height added (h-[400px] on mobile, md:h-[500px] on desktop) so elements never overlap -->
-                <div id="demo-container" class="relative w-full h-[400px] md:h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
+                <!-- MOBILE LAYOUT FIX: Forced h-[500px] minimum on all screens to guarantee items never overlap -->
+                <div id="demo-container" class="relative w-full h-[500px] md:h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
                     
                     <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-40 transition-opacity duration-500">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -129,7 +131,8 @@
                         RESET BOX
                     </button>
 
-                    <div id="drop-zone" class="absolute w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80">
+                    <!-- MOBILE LAYOUT FIX: Shrunk mobile targets to w-20/h-20 (drop) and w-16/h-16 (drag) to create maximum space. Laptop sizes (sm:) are unchanged. -->
+                    <div id="drop-zone" class="absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80">
                         DROP HERE
                     </div>
 
@@ -137,7 +140,8 @@
                         DRAG ME
                     </div>
                     
-                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1] mix-blend-screen" autoplay playsinline></video>
+                    <!-- MOBILE PERFORMANCE FIX: Removed mix-blend-screen. It crashes low-end mobile GPUs -->
+                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1]" autoplay playsinline></video>
                     
                     <div id="cursor" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none transform -translate-x-1/2 -translate-y-1/2 opacity-0 z-30 border-2 border-white"></div>
                 </div>
@@ -261,7 +265,7 @@
         const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 
         const resetZone = () => {
-            dropZone.className = "absolute w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80";
+            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80";
             dropZone.innerHTML = "DROP HERE";
         };
 
@@ -328,7 +332,7 @@
                         const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
 
                         if (isZoneOverlapping) {
-                            dropZone.className = "absolute w-24 h-24 sm:w-32 sm:h-32 border-4 border-lime-400 bg-lime-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-200 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)]";
+                            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-lime-400 bg-lime-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-200 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)]";
                         } else {
                             resetZone();
                         }
@@ -343,7 +347,7 @@
                         const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
 
                         if (isZoneOverlapping) {
-                            dropZone.className = "absolute w-24 h-24 sm:w-32 sm:h-32 border-4 border-green-400 bg-green-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-green-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 shadow-[0_0_20px_rgba(74,222,128,0.4)]";
+                            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-green-400 bg-green-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-green-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 shadow-[0_0_20px_rgba(74,222,128,0.4)]";
                             dropZone.innerHTML = "SUCCESS";
                             draggableBox.style.left = `${zoneLeft + (dropZone.offsetWidth - draggableBox.offsetWidth) / 2}px`;
                             draggableBox.style.top = `${zoneTop + (dropZone.offsetHeight - draggableBox.offsetHeight) / 2}px`;
@@ -361,13 +365,13 @@
             }
         });
 
-        // MOBILE PERFORMANCE FIX: Custom Frame-Skipper Algorithm
+        // MOBILE PERFORMANCE FIX: Aggressive Frame-Skipping Algorithm
         const camera = new Camera(videoElement, { 
             onFrame: async () => {
                 if (isMobile) {
                     frameCount++;
-                    // Skip every other frame on mobile devices to cut the CPU workload by 50%
-                    if (frameCount % 2 === 0) return; 
+                    // Skip 2 out of every 3 frames on mobile to massively reduce CPU workload
+                    if (frameCount % 3 !== 0) return; 
                 }
                 await hands.send({ image: videoElement });
             }, 
