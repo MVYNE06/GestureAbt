@@ -275,11 +275,13 @@
 
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
         
+        // AI DETECTION RESTORED: Using the high-accuracy model (Complexity 1) for all devices, 
+        // with stricter confidence thresholds (0.6) so it doesn't accidentally drop the pinch on mobile.
         hands.setOptions({ 
             maxNumHands: 1, 
-            modelComplexity: isMobile ? 0 : 1, 
-            minDetectionConfidence: 0.5, 
-            minTrackingConfidence: 0.5 
+            modelComplexity: 1, 
+            minDetectionConfidence: 0.6, 
+            minTrackingConfidence: 0.6 
         });
 
         hands.onResults((results) => {
@@ -364,7 +366,8 @@
             }
         });
 
-        // AI DETECTION RESTORED: Running at full speed for smooth tracking
+        // AI DETECTION RESTORED: Running at full speed for smooth tracking.
+        // Keeping the lower camera resolution strictly on phones to prevent overheating.
         const camera = new Camera(videoElement, { 
             onFrame: async () => {
                 await hands.send({ image: videoElement });
