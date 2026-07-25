@@ -8,12 +8,12 @@
     <!-- Tailwind CSS for high-end tech styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Official Spline Viewer (Deferred for faster page load) -->
+    <!-- Official Spline Viewer -->
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js" defer></script>
     
-    <!-- MediaPipe Machine Learning Libraries (Deferred) -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
+    <!-- MediaPipe Machine Learning Libraries (Restored synchronous loading so the camera fires immediately) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <style>
         body {
@@ -119,7 +119,7 @@
                         <p class="text-sm font-bold text-lime-400 tracking-widest uppercase">Initializing AI Model...</p>
                     </div>
 
-                    <button id="reset-btn" class="absolute top-6 right-6 z-30 bg-white/10 hover:bg-white/20 text-xs text-white font-bold tracking-widest py-3 px-6 rounded-2xl border border-white/20 transition-all shadow-lg backdrop-blur-md">
+                    <button id="reset-btn" class="absolute top-6 right-6 z-30 bg-white/10 hover:bg-white/20 text-xs text-white font-bold tracking-widest py-3 px-6 rounded-2xl border border-white/20 transition-all duration-200 shadow-lg backdrop-blur-md cursor-pointer">
                         RESET BOX
                     </button>
 
@@ -145,12 +145,29 @@
             <div class="text-center mb-8">
                 <h3 class="text-xs font-black tracking-[0.2em] text-lime-600 uppercase">Project Engineered By</h3>
             </div>
+            
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                ${['Shane', 'Aditya', 'Aaron', 'Vinay', 'Risha', 'Jeslin', 'Jasmin'].map(name => `
-                    <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                        <p class="text-sm font-bold text-slate-700 tracking-wide">${name}</p>
-                    </div>
-                `).join('')}
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Shane</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Aditya</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Aaron</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Vinay</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Risha</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Jeslin</p>
+                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-4 px-2 rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
+                    <p class="text-sm font-bold text-slate-700 tracking-wide">Jasmin</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -191,8 +208,6 @@
             { id: 'scroll', title: 'Scroll Mode', sub: 'Index & Middle up', icon: '✌️', image: 'Scroll_Mode.webp', desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
             { id: 'screenshot', title: 'Screenshot', sub: 'Shaka gesture', icon: '🤙', image: 'Screenshot.webp', desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
             { id: 'idle', title: 'Frozen / Idle', sub: 'Unknown gesture', icon: '✋', image: 'Frozen.webp', desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
-            
-            // The new framing feature for judges
             { id: 'advanced', title: 'Full Feature Suite', sub: '15+ Additional Extensions', icon: '🚀', image: 'Cursor_Mode.webp', desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
         ];
 
@@ -204,8 +219,6 @@
 
         gestures.forEach((gesture, index) => {
             const btn = document.createElement('button');
-            
-            // Give the advanced features button a slightly different, highlighted look to stand out to judges
             const specialBg = gesture.id === 'advanced' ? 'bg-gradient-to-r from-lime-50 to-yellow-50' : 'bg-lime-50';
             
             btn.className = `w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center gap-5 ${index === 0 ? activeClasses : inactiveClasses}`;
@@ -233,20 +246,19 @@
     <!-- MEDIAPIPE TRACKING SCRIPT -->
     <script>
         const videoElement = document.getElementById('input_video'), cursor = document.getElementById('cursor'), demoContainer = document.getElementById('demo-container'), loadingText = document.getElementById('loading');
-        const draggableBox = document.getElementById('draggable-box'), dropZone = document.getElementById('drop-zone');
+        const draggableBox = document.getElementById('draggable-box'), dropZone = document.getElementById('drop-zone'), resetBtn = document.getElementById('reset-btn');
         let isDragging = false;
+        let wasPinching = false;
         
         const resetZone = () => {
             dropZone.className = "absolute w-32 h-32 border-2 border-dashed border-lime-500/50 rounded-3xl flex items-center justify-center text-lime-200/50 font-bold z-10 bottom-8 right-8 transition-all duration-300 bg-slate-800/50 backdrop-blur-sm";
             dropZone.innerHTML = "DROP HERE";
         };
 
-        document.getElementById('reset-btn').addEventListener('click', () => {
+        resetBtn.addEventListener('click', () => {
             draggableBox.style.left = ''; draggableBox.style.top = '';
             resetZone();
         });
-
-        const isOverlapping = (rect1, rect2) => !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
 
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
         hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
@@ -259,6 +271,7 @@
             
             if (results.multiHandLandmarks?.length > 0) {
                 const hand = results.multiHandLandmarks[0], indexTip = hand[8], thumbTip = hand[4];
+                
                 const cursorX = (1 - indexTip.x) * demoContainer.offsetWidth;
                 const cursorY = indexTip.y * demoContainer.offsetHeight;
 
@@ -266,30 +279,58 @@
 
                 const isPinching = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y) < 0.05;
 
+                const rBtnLeft = resetBtn.offsetLeft, rBtnRight = rBtnLeft + resetBtn.offsetWidth;
+                const rBtnTop = resetBtn.offsetTop, rBtnBottom = rBtnTop + resetBtn.offsetHeight;
+                const isHoveringReset = cursorX >= rBtnLeft && cursorX <= rBtnRight && cursorY >= rBtnTop && cursorY <= rBtnBottom;
+
+                if (isHoveringReset) {
+                    resetBtn.classList.add('bg-white/30', 'scale-105');
+                    if (isPinching && !wasPinching) {
+                        resetBtn.click(); 
+                        resetBtn.classList.replace('scale-105', 'scale-95');
+                        setTimeout(() => resetBtn.classList.replace('scale-95', 'scale-105'), 150);
+                    }
+                } else {
+                    resetBtn.classList.remove('bg-white/30', 'scale-105', 'scale-95');
+                }
+
                 if (isPinching) {
                     cursor.style.backgroundColor = '#facc15'; 
                     cursor.style.boxShadow = '0 0 25px rgba(250, 204, 21, 1)';
                     
-                    const boxRect = draggableBox.getBoundingClientRect(), zoneRect = dropZone.getBoundingClientRect(), containerRect = demoContainer.getBoundingClientRect();
-                    const absX = containerRect.left + cursorX, absY = containerRect.top + cursorY;
+                    const boxLeft = draggableBox.offsetLeft, boxRight = boxLeft + draggableBox.offsetWidth;
+                    const boxTop = draggableBox.offsetTop, boxBottom = boxTop + draggableBox.offsetHeight;
 
-                    if (isDragging || (absX >= boxRect.left && absX <= boxRect.right && absY >= boxRect.top && absY <= boxRect.bottom)) {
+                    if (isDragging || (cursorX >= boxLeft && cursorX <= boxRight && cursorY >= boxTop && cursorY <= boxBottom)) {
                         isDragging = true;
                         draggableBox.style.left = `${Math.max(0, Math.min(cursorX - (draggableBox.offsetWidth / 2), demoContainer.offsetWidth - draggableBox.offsetWidth))}px`;
                         draggableBox.style.top = `${Math.max(0, Math.min(cursorY - (draggableBox.offsetHeight / 2), demoContainer.offsetHeight - draggableBox.offsetHeight))}px`;
                         draggableBox.style.transform = 'scale(1.05)'; 
 
-                        if (isOverlapping(boxRect, zoneRect)) {
+                        const zoneLeft = dropZone.offsetLeft, zoneRight = zoneLeft + dropZone.offsetWidth;
+                        const zoneTop = dropZone.offsetTop, zoneBottom = zoneTop + dropZone.offsetHeight;
+                        const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
+
+                        if (isZoneOverlapping) {
                             dropZone.className = "absolute w-32 h-32 border-4 border-lime-400 bg-lime-900/60 backdrop-blur-md rounded-3xl flex items-center justify-center text-lime-300 font-bold z-10 bottom-8 right-8 transition-all duration-200 scale-105 shadow-[0_0_30px_rgba(163,230,53,0.3)]";
-                        } else resetZone();
+                        } else {
+                            resetZone();
+                        }
                     }
                 } else {
                     if (isDragging) {
-                        if (isOverlapping(draggableBox.getBoundingClientRect(), dropZone.getBoundingClientRect())) {
+                        const boxLeft = draggableBox.offsetLeft, boxRight = boxLeft + draggableBox.offsetWidth;
+                        const boxTop = draggableBox.offsetTop, boxBottom = boxTop + draggableBox.offsetHeight;
+                        const zoneLeft = dropZone.offsetLeft, zoneRight = zoneLeft + dropZone.offsetWidth;
+                        const zoneTop = dropZone.offsetTop, zoneBottom = zoneTop + dropZone.offsetHeight;
+                        
+                        const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
+
+                        if (isZoneOverlapping) {
                             dropZone.className = "absolute w-32 h-32 border-4 border-green-400 bg-green-900/60 backdrop-blur-md rounded-3xl flex items-center justify-center text-green-300 font-bold z-10 bottom-8 right-8 transition-all duration-300 shadow-[0_0_30px_rgba(74,222,128,0.4)]";
                             dropZone.innerHTML = "SUCCESS";
-                            draggableBox.style.left = `${dropZone.offsetLeft + (dropZone.offsetWidth - draggableBox.offsetWidth) / 2}px`;
-                            draggableBox.style.top = `${dropZone.offsetTop + (dropZone.offsetHeight - draggableBox.offsetHeight) / 2}px`;
+                            draggableBox.style.left = `${zoneLeft + (dropZone.offsetWidth - draggableBox.offsetWidth) / 2}px`;
+                            draggableBox.style.top = `${zoneTop + (dropZone.offsetHeight - draggableBox.offsetHeight) / 2}px`;
                         } else resetZone();
                     }
                     isDragging = false;
@@ -297,8 +338,10 @@
                     cursor.style.boxShadow = '0 0 25px rgba(163, 230, 53, 1)';
                     draggableBox.style.transform = 'scale(1)';
                 }
+                wasPinching = isPinching; 
             } else {
                 cursor.style.opacity = '0'; isDragging = false; draggableBox.style.transform = 'scale(1)';
+                wasPinching = false;
             }
         });
 
