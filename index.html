@@ -21,10 +21,13 @@
             color: #0f172a; 
         }
         
-        /* MOBILE PERFORMANCE FIX: Removed top/left transitions to stop layout thrashing. Added will-change for GPU Hardware Acceleration */
+        /* 🚀 OPTIMIZATION 1: Removed positioning and transform from the CSS transition. 
+           We ONLY transition visual properties like color and shadow. The GPU handles transform directly via JS. */
         #cursor, #draggable-box {
-            transition: transform 0.1s ease, background-color 0.2s, box-shadow 0.2s;
-            will-change: transform, top, left;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+            will-change: transform;
+            top: 0; 
+            left: 0;
         }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -38,7 +41,6 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
-        /* MOBILE FIX: Prevents the phone screen from scrolling when interacting with the AI sandbox */
         .touch-none {
             touch-action: none; 
         }
@@ -81,13 +83,10 @@
 
         <!-- SECTION 2: IMAGE SHOWCASE -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-            
             <!-- Left Column: Gesture Selectors -->
             <div class="lg:col-span-5 flex flex-col h-full max-h-[400px] sm:max-h-[600px]">
                 <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 pl-2">Select a Gesture</h3>
-                <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 sm:pr-3 space-y-2 sm:space-y-3 pb-4" id="gesture-list">
-                    <!-- Javascript populates this -->
-                </div>
+                <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 sm:pr-3 space-y-2 sm:space-y-3 pb-4" id="gesture-list"></div>
             </div>
 
             <!-- Right Column: Big Image Display -->
@@ -119,7 +118,6 @@
             <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 sm:mb-6 text-center">Live Tracking Sandbox</h3>
             
             <div class="max-w-5xl mx-auto">
-                <!-- MOBILE LAYOUT FIX: Forced h-[500px] minimum on all screens to guarantee items never overlap -->
                 <div id="demo-container" class="relative w-full h-[500px] md:h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
                     
                     <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-40 transition-opacity duration-500">
@@ -127,23 +125,23 @@
                         <p class="text-xs sm:text-sm font-bold text-lime-400 tracking-widest uppercase">Initializing AI Model...</p>
                     </div>
 
-                    <button id="reset-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 bg-slate-700/80 hover:bg-slate-600 text-[10px] sm:text-xs text-white font-bold tracking-widest py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl sm:rounded-2xl border border-white/20 transition-all duration-200 shadow-lg cursor-pointer">
+                    <button id="reset-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 bg-slate-700/80 hover:bg-slate-600 text-[10px] sm:text-xs text-white font-bold tracking-widest py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl sm:rounded-2xl border border-white/20 shadow-lg cursor-pointer transition-transform">
                         RESET BOX
                     </button>
 
-                    <!-- MOBILE LAYOUT FIX: Shrunk mobile targets to w-20/h-20 (drop) and w-16/h-16 (drag) to create maximum space. Laptop sizes (sm:) are unchanged. -->
-                    <div id="drop-zone" class="absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80">
+                    <div id="drop-zone" class="absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 bg-slate-800/80 transition-all duration-300">
                         DROP HERE
                     </div>
 
-                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 top-6 left-6 sm:top-8 sm:left-8 select-none border border-white/40 transition-transform">
+                    <!-- Removed top/left tailwind classes to allow standard initialize -->
+                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 select-none border border-white/40 block">
                         DRAG ME
                     </div>
                     
-                    <!-- MOBILE PERFORMANCE FIX: Removed mix-blend-screen. It crashes low-end mobile GPUs -->
                     <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1]" autoplay playsinline></video>
                     
-                    <div id="cursor" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none transform -translate-x-1/2 -translate-y-1/2 opacity-0 z-30 border-2 border-white"></div>
+                    <!-- Removed transform classes (-translate-x) from classlist, moved to JS -->
+                    <div id="cursor" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none opacity-0 z-30 border-2 border-white block"></div>
                 </div>
             </div>
         </section>
@@ -157,27 +155,13 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Shane</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aditya</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aaron</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Vinay</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Risha</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jeslin</p>
-                </div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default">
-                    <p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jasmin</p>
-                </div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Shane</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aditya</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aaron</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Vinay</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Risha</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jeslin</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jasmin</p></div>
             </div>
         </div>
     </footer>
@@ -189,18 +173,12 @@
 
         window.addEventListener('scroll', () => {
             if (window.scrollY > 400) return; 
-
             if (!isTicking) {
                 window.requestAnimationFrame(() => {
                     const scrollY = window.scrollY;
-                    const opacity = Math.max(0, 1 - (scrollY / 350));
-                    const scale = Math.max(0.95, 1 - (scrollY / 2000));
-                    const translateY = scrollY * 0.4;
-                    
-                    splineHero.style.opacity = opacity;
-                    splineHero.style.transform = `translateY(${translateY}px) scale(${scale})`;
-                    splineHero.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto';
-                    
+                    splineHero.style.opacity = Math.max(0, 1 - (scrollY / 350));
+                    splineHero.style.transform = `translateY(${scrollY * 0.4}px) scale(${Math.max(0.95, 1 - (scrollY / 2000))})`;
+                    splineHero.style.pointerEvents = scrollY > 330 ? 'none' : 'auto';
                     isTicking = false;
                 });
                 isTicking = true;
@@ -253,15 +231,48 @@
         });
     </script>
 
-    <!-- MEDIAPIPE TRACKING SCRIPT -->
+    <!-- 🚀 OPTIMIZED MEDIAPIPE TRACKING SCRIPT -->
     <script>
         const videoElement = document.getElementById('input_video'), cursor = document.getElementById('cursor'), demoContainer = document.getElementById('demo-container'), loadingText = document.getElementById('loading');
         const draggableBox = document.getElementById('draggable-box'), dropZone = document.getElementById('drop-zone'), resetBtn = document.getElementById('reset-btn');
         
+        const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+
+        // Application State
         let isDragging = false;
         let wasPinching = false;
-        
-        const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+        let boxX = 24, boxY = 24; // Initial Box Coordinates
+        let boxScale = 1;
+        let latestHandData = null; // Decoupled hand tracking data
+
+        // 🚀 OPTIMIZATION 2: Cache DOM dimensions to prevent layout thrashing
+        const layout = {
+            container: { w: 0, h: 0 },
+            reset: { l: 0, r: 0, t: 0, b: 0 },
+            drop: { l: 0, r: 0, t: 0, b: 0 },
+            box: { w: 0, h: 0 }
+        };
+
+        function updateLayoutCache() {
+            layout.container.w = demoContainer.offsetWidth;
+            layout.container.h = demoContainer.offsetHeight;
+            
+            layout.reset.l = resetBtn.offsetLeft;
+            layout.reset.r = resetBtn.offsetLeft + resetBtn.offsetWidth;
+            layout.reset.t = resetBtn.offsetTop;
+            layout.reset.b = resetBtn.offsetTop + resetBtn.offsetHeight;
+            
+            layout.drop.l = dropZone.offsetLeft;
+            layout.drop.r = dropZone.offsetLeft + dropZone.offsetWidth;
+            layout.drop.t = dropZone.offsetTop;
+            layout.drop.b = dropZone.offsetTop + dropZone.offsetHeight;
+            
+            layout.box.w = draggableBox.offsetWidth;
+            layout.box.h = draggableBox.offsetHeight;
+        }
+
+        // Keep cache accurate if user rotates phone or resizes window
+        window.addEventListener('resize', updateLayoutCache);
 
         const resetZone = () => {
             dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80";
@@ -269,12 +280,15 @@
         };
 
         resetBtn.addEventListener('click', () => {
-            draggableBox.style.left = ''; draggableBox.style.top = '';
+            boxX = 24; 
+            boxY = 24;
             resetZone();
         });
 
+        // Initialize Box Position
+        draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(1)`;
+
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-        
         hands.setOptions({ 
             maxNumHands: 1, 
             modelComplexity: isMobile ? 0 : 1, 
@@ -282,25 +296,34 @@
             minTrackingConfidence: 0.5 
         });
 
+        // The ML Callback ONLY updates state, it never touches the DOM directly.
         hands.onResults((results) => {
             if(loadingText.style.opacity !== '0') {
                 loadingText.style.opacity = '0';
                 setTimeout(() => loadingText.style.display = 'none', 500);
+                setTimeout(updateLayoutCache, 100); // Prime the cache after load
             }
-            
-            if (results.multiHandLandmarks?.length > 0) {
-                const hand = results.multiHandLandmarks[0], indexTip = hand[8], thumbTip = hand[4];
-                
-                const cursorX = (1 - indexTip.x) * demoContainer.offsetWidth;
-                const cursorY = indexTip.y * demoContainer.offsetHeight;
+            latestHandData = results.multiHandLandmarks?.length > 0 ? results.multiHandLandmarks[0] : null;
+        });
 
-                cursor.style.left = `${cursorX}px`; cursor.style.top = `${cursorY}px`; cursor.style.opacity = '1';
+        // 🚀 OPTIMIZATION 3: Dedicated Render Loop tied to the screen refresh rate
+        function renderLoop() {
+            if (latestHandData) {
+                const indexTip = latestHandData[8];
+                const thumbTip = latestHandData[4];
+                
+                const cursorX = (1 - indexTip.x) * layout.container.w;
+                const cursorY = indexTip.y * layout.container.h;
+
+                // GPU Accelerated Cursor Move
+                cursor.style.transform = `translate3d(calc(${cursorX}px - 50%), calc(${cursorY}px - 50%), 0)`;
+                cursor.style.opacity = '1';
 
                 const isPinching = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y) < 0.05;
 
-                const rBtnLeft = resetBtn.offsetLeft, rBtnRight = rBtnLeft + resetBtn.offsetWidth;
-                const rBtnTop = resetBtn.offsetTop, rBtnBottom = rBtnTop + resetBtn.offsetHeight;
-                const isHoveringReset = cursorX >= rBtnLeft && cursorX <= rBtnRight && cursorY >= rBtnTop && cursorY <= rBtnBottom;
+                // Hit detection using CACHED boundaries
+                const isHoveringReset = cursorX >= layout.reset.l && cursorX <= layout.reset.r && 
+                                        cursorY >= layout.reset.t && cursorY <= layout.reset.b;
 
                 if (isHoveringReset) {
                     resetBtn.classList.add('bg-white/30', 'scale-105');
@@ -317,18 +340,18 @@
                     cursor.style.backgroundColor = '#facc15'; 
                     cursor.style.boxShadow = '0 0 20px rgba(250, 204, 21, 0.8)';
                     
-                    const boxLeft = draggableBox.offsetLeft, boxRight = boxLeft + draggableBox.offsetWidth;
-                    const boxTop = draggableBox.offsetTop, boxBottom = boxTop + draggableBox.offsetHeight;
+                    const boxRight = boxX + layout.box.w;
+                    const boxBottom = boxY + layout.box.h;
 
-                    if (isDragging || (cursorX >= boxLeft && cursorX <= boxRight && cursorY >= boxTop && cursorY <= boxBottom)) {
+                    if (isDragging || (cursorX >= boxX && cursorX <= boxRight && cursorY >= boxY && cursorY <= boxBottom)) {
                         isDragging = true;
-                        draggableBox.style.left = `${Math.max(0, Math.min(cursorX - (draggableBox.offsetWidth / 2), demoContainer.offsetWidth - draggableBox.offsetWidth))}px`;
-                        draggableBox.style.top = `${Math.max(0, Math.min(cursorY - (draggableBox.offsetHeight / 2), demoContainer.offsetHeight - draggableBox.offsetHeight))}px`;
-                        draggableBox.style.transform = 'scale(1.05)'; 
+                        boxScale = 1.05;
+                        
+                        // Constrain box inside container
+                        boxX = Math.max(0, Math.min(cursorX - (layout.box.w / 2), layout.container.w - layout.box.w));
+                        boxY = Math.max(0, Math.min(cursorY - (layout.box.h / 2), layout.container.h - layout.box.h));
 
-                        const zoneLeft = dropZone.offsetLeft, zoneRight = zoneLeft + dropZone.offsetWidth;
-                        const zoneTop = dropZone.offsetTop, zoneBottom = zoneTop + dropZone.offsetHeight;
-                        const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
+                        const isZoneOverlapping = !(boxX + layout.box.w < layout.drop.l || boxX > layout.drop.r || boxY + layout.box.h < layout.drop.t || boxY > layout.drop.b);
 
                         if (isZoneOverlapping) {
                             dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-lime-400 bg-lime-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-200 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)]";
@@ -338,33 +361,44 @@
                     }
                 } else {
                     if (isDragging) {
-                        const boxLeft = draggableBox.offsetLeft, boxRight = boxLeft + draggableBox.offsetWidth;
-                        const boxTop = draggableBox.offsetTop, boxBottom = boxTop + draggableBox.offsetHeight;
-                        const zoneLeft = dropZone.offsetLeft, zoneRight = zoneLeft + dropZone.offsetWidth;
-                        const zoneTop = dropZone.offsetTop, zoneBottom = zoneTop + dropZone.offsetHeight;
-                        
-                        const isZoneOverlapping = !(boxRight < zoneLeft || boxLeft > zoneRight || boxBottom < zoneTop || boxTop > zoneBottom);
+                        const isZoneOverlapping = !(boxX + layout.box.w < layout.drop.l || boxX > layout.drop.r || boxY + layout.box.h < layout.drop.t || boxY > layout.drop.b);
 
                         if (isZoneOverlapping) {
                             dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-green-400 bg-green-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-green-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 shadow-[0_0_20px_rgba(74,222,128,0.4)]";
                             dropZone.innerHTML = "SUCCESS";
-                            draggableBox.style.left = `${zoneLeft + (dropZone.offsetWidth - draggableBox.offsetWidth) / 2}px`;
-                            draggableBox.style.top = `${zoneTop + (dropZone.offsetHeight - draggableBox.offsetHeight) / 2}px`;
-                        } else resetZone();
+                            
+                            // Snap to center of drop zone
+                            boxX = layout.drop.l + ((layout.drop.r - layout.drop.l) - layout.box.w) / 2;
+                            boxY = layout.drop.t + ((layout.drop.b - layout.drop.t) - layout.box.h) / 2;
+                        } else {
+                            resetZone();
+                        }
                     }
                     isDragging = false;
+                    boxScale = 1;
                     cursor.style.backgroundColor = '#a3e635'; 
                     cursor.style.boxShadow = '0 0 15px rgba(163, 230, 53, 0.8)';
-                    draggableBox.style.transform = 'scale(1)';
                 }
+
+                // GPU Accelerated Box Move
+                draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(${boxScale})`;
                 wasPinching = isPinching; 
+                
             } else {
-                cursor.style.opacity = '0'; isDragging = false; draggableBox.style.transform = 'scale(1)';
+                cursor.style.opacity = '0'; 
+                isDragging = false; 
+                boxScale = 1;
+                draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(${boxScale})`;
                 wasPinching = false;
             }
-        });
 
-        // AI DETECTION RESTORED: Running at full speed for smooth tracking
+            // Loop rendering
+            requestAnimationFrame(renderLoop);
+        }
+
+        // Start the render loop
+        requestAnimationFrame(renderLoop);
+
         const camera = new Camera(videoElement, { 
             onFrame: async () => {
                 await hands.send({ image: videoElement });
