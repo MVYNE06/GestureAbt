@@ -3,21 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gesture Controls Project</title>
     
-    <!-- OPTIMIZATION: Preload critical gesture images to prevent layout flash -->
+    <!-- TWEAK 1: Mobile Theme Color -->
+    <meta name="theme-color" content="#f4f7f4">
+    
+    <title>Gesture Controls Project</title>
+
+    <!-- Preconnect: opens TCP/TLS to CDN hosts before scripts are parsed -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <!-- Preload gesture images to prevent flash on first sidebar click -->
     <link rel="preload" as="image" href="Cursor_Mode.webp">
     <link rel="preload" as="image" href="Single_Double_Drag_Click.webp">
     <link rel="preload" as="image" href="Scroll_Mode.webp">
     <link rel="preload" as="image" href="Screenshot.webp">
     <link rel="preload" as="image" href="Frozen.webp">
-    
-    <!-- Tailwind CSS CDN restored for simple copy/paste deployment -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- TWEAK 2: Added 'defer' to MediaPipe scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
 
     <style>
         body {
@@ -25,11 +34,12 @@
             color: #0f172a;
         }
 
+        /* No transform transition on cursor — instant response to hand movement.
+           The old 0.1s transition was adding 100 ms of lag per frame. */
         #cursor {
             transition: background-color 0.15s, box-shadow 0.15s, opacity 0.2s;
             will-change: transform;
         }
-        
         #draggable-box {
             transition: background-color 0.2s, box-shadow 0.2s;
             will-change: transform;
@@ -51,7 +61,7 @@
 </head>
 <body class="font-sans min-h-screen flex flex-col selection:bg-lime-200 selection:text-lime-900 overflow-x-hidden">
 
-    <!-- Header / Navbar -->
+    <!-- Header -->
     <header class="border-b border-lime-100 bg-white/80 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-6 py-4 flex justify-between items-center w-full shadow-sm">
         <h1 class="text-lg sm:text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-lime-500 uppercase truncate">
             Gesture Controls
@@ -67,7 +77,7 @@
 
     <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-16 sm:space-y-24">
 
-        <!-- SECTION 1: TOP HERO -->
+        <!-- SECTION 1: HERO -->
         <section id="spline-hero" class="w-full flex flex-col items-center z-0 origin-top" style="will-change: transform, opacity;">
             <div class="text-center mb-6 sm:mb-10 space-y-3 sm:space-y-4 px-2">
                 <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -77,16 +87,14 @@
                     Interact with your digital environment using intuitive, camera-tracked hand movements.
                 </p>
             </div>
-
             <div class="w-full max-w-5xl h-[250px] sm:h-[300px] md:h-[400px] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border-4 border-white bg-white group">
                 <div class="absolute inset-0 bg-gradient-to-tr from-lime-50 to-yellow-50 pointer-events-none"></div>
                 <spline-viewer loading-anim-type="spinner-small-dark" url="https://prod.spline.design/iYnhrhxii0kTF4VT/scene.splinecode"></spline-viewer>
             </div>
         </section>
 
-        <!-- SECTION 2: IMAGE SHOWCASE -->
+        <!-- SECTION 2: GESTURE SHOWCASE -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-
             <div class="lg:col-span-5 flex flex-col h-full max-h-[400px] sm:max-h-[600px]">
                 <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 pl-2">Select a Gesture</h3>
                 <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 sm:pr-3 space-y-2 sm:space-y-3 pb-4" id="gesture-list"></div>
@@ -95,7 +103,6 @@
             <div class="lg:col-span-7 h-full mt-4 lg:mt-0">
                 <div class="glass-panel rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-8 h-full flex flex-col shadow-xl relative overflow-hidden">
                     <div class="absolute -top-32 -right-32 w-80 h-80 sm:w-96 sm:h-96 bg-lime-100 rounded-full blur-3xl pointer-events-none opacity-60"></div>
-
                     <div class="mb-6 sm:mb-8 relative z-10">
                         <div class="flex items-center gap-4 sm:gap-5 mb-3 sm:mb-4">
                             <span id="display-icon" class="text-3xl sm:text-4xl bg-white p-3 sm:p-4 rounded-2xl border border-lime-100 shadow-sm text-slate-800">☝️</span>
@@ -106,7 +113,6 @@
                         </div>
                         <p id="display-desc" class="text-slate-600 text-sm sm:text-base leading-relaxed pl-1 max-w-md">Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.</p>
                     </div>
-
                     <div class="flex-grow w-full bg-slate-100 rounded-2xl sm:rounded-[2rem] border-4 border-white shadow-lg overflow-hidden relative z-10 min-h-[200px] sm:min-h-[350px]">
                         <img id="display-image" src="Cursor_Mode.webp" class="w-full h-full object-cover" alt="Gesture preview image">
                     </div>
@@ -114,12 +120,11 @@
             </div>
         </section>
 
-        <!-- SECTION 3: LIVE TRACKING DEMO -->
+        <!-- SECTION 3: LIVE DEMO -->
         <section class="w-full pb-8 relative z-10">
             <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 sm:mb-6 text-center">Live Tracking Sandbox</h3>
-
             <div class="max-w-5xl mx-auto">
-                <div id="demo-container" class="relative w-full h-[500px] md:h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
+                <div id="demo-container" class="relative w-full h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
 
                     <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-40 transition-opacity duration-500">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -134,13 +139,19 @@
                         DROP HERE
                     </div>
 
-                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 select-none border border-white/40 block">
+                    <!-- Position managed entirely by JS via transform — no Tailwind top/left classes -->
+                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 select-none border border-white/40">
                         DRAG ME
                     </div>
 
-                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1]" autoplay playsinline></video>
+                    <!--
+                        FIX: `muted` is required for autoplay on iOS Safari.
+                        Without it, camera feeds silently fail to start on iPhones.
+                    -->
+                    <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1]" autoplay playsinline muted></video>
 
-                    <div id="cursor" style="top:0;left:0" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none opacity-0 z-30 border-2 border-white block"></div>
+                    <!-- style="top:0;left:0" anchors the transform origin; centering offset applied in JS -->
+                    <div id="cursor" style="top:0;left:0" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none opacity-0 z-30 border-2 border-white"></div>
                 </div>
             </div>
         </section>
@@ -164,18 +175,18 @@
         </div>
     </footer>
 
+    <!-- Scroll parallax on hero -->
     <script>
         const splineHero = document.getElementById('spline-hero');
         let isTicking = false;
-
         window.addEventListener('scroll', () => {
             if (window.scrollY > 400) return;
             if (!isTicking) {
                 window.requestAnimationFrame(() => {
-                    const scrollY = window.scrollY;
-                    splineHero.style.opacity = Math.max(0, 1 - (scrollY / 350));
-                    splineHero.style.transform = `translateY(${scrollY * 0.4}px) scale(${Math.max(0.95, 1 - (scrollY / 2000))})`;
-                    splineHero.style.pointerEvents = scrollY > 330 ? 'none' : 'auto';
+                    const s = window.scrollY;
+                    splineHero.style.opacity        = Math.max(0, 1 - s / 350);
+                    splineHero.style.transform      = `translateY(${s * 0.4}px) scale(${Math.max(0.95, 1 - s / 2000)})`;
+                    splineHero.style.pointerEvents  = s > 330 ? 'none' : 'auto';
                     isTicking = false;
                 });
                 isTicking = true;
@@ -183,6 +194,7 @@
         }, { passive: true });
     </script>
 
+    <!-- Gesture selector sidebar -->
     <script>
         const gestures = [
             { id: 'cursor',     title: 'Cursor Mode',        sub: 'Index finger up',         icon: '☝️',   image: 'Cursor_Mode.webp',              desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
@@ -192,19 +204,21 @@
             { id: 'scroll',     title: 'Scroll Mode',        sub: 'Index & Middle up',       icon: '✌️',   image: 'Scroll_Mode.webp',              desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
             { id: 'screenshot', title: 'Screenshot',         sub: 'Shaka gesture',           icon: '🤙',   image: 'Screenshot.webp',               desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
             { id: 'idle',       title: 'Frozen / Idle',      sub: 'Unknown gesture',         icon: '✋',   image: 'Frozen.webp',                   desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
-            { id: 'advanced',   title: 'Full Feature Suite', sub: '15+ Additional Extensions',icon: '🚀',  image: 'Cursor_Mode.webp',              desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
+            { id: 'advanced',   title: 'Full Feature Suite', sub: '15+ Additional Extensions', icon: '🚀',  image: 'Cursor_Mode.webp',              desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
         ];
 
-        const listContainer = document.getElementById('gesture-list');
-        const dIcon = document.getElementById('display-icon'), dTitle = document.getElementById('display-title'), dSub = document.getElementById('display-subtitle'), dDesc = document.getElementById('display-desc'), dImg = document.getElementById('display-image');
-
+        const listContainer   = document.getElementById('gesture-list');
+        const dIcon           = document.getElementById('display-icon');
+        const dTitle          = document.getElementById('display-title');
+        const dSub            = document.getElementById('display-subtitle');
+        const dDesc           = document.getElementById('display-desc');
+        const dImg            = document.getElementById('display-image');
         const activeClasses   = 'bg-white border-lime-300 shadow-lg scale-[1.02] ring-2 ring-lime-200';
         const inactiveClasses = 'bg-white/40 border-transparent hover:bg-white/80 hover:border-lime-200 hover:shadow-md';
 
         gestures.forEach((gesture, index) => {
             const btn = document.createElement('button');
             const specialBg = gesture.id === 'advanced' ? 'bg-gradient-to-r from-lime-50 to-yellow-50' : 'bg-lime-50';
-
             btn.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${index === 0 ? activeClasses : inactiveClasses}`;
             btn.innerHTML = `
                 <div class="p-2 sm:p-3 ${specialBg} rounded-lg sm:rounded-xl text-lg sm:text-xl shrink-0 border border-lime-100">${gesture.icon}</div>
@@ -212,9 +226,10 @@
                     <h4 class="text-sm sm:text-base font-bold text-slate-800 tracking-wide">${gesture.title}</h4>
                     <p class="text-[10px] sm:text-xs font-semibold ${gesture.id === 'advanced' ? 'text-lime-600' : 'text-slate-500'} mt-0.5 sm:mt-1">${gesture.sub}</p>
                 </div>`;
-
             btn.addEventListener('click', () => {
-                Array.from(listContainer.children).forEach(c => c.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${inactiveClasses}`);
+                Array.from(listContainer.children).forEach(c => {
+                    c.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${inactiveClasses}`;
+                });
                 btn.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${activeClasses}`;
                 dIcon.textContent  = gesture.icon;
                 dTitle.textContent = gesture.title;
@@ -226,270 +241,243 @@
         });
     </script>
 
+    <!-- MediaPipe hand tracking (Wrapped for safe deferring) -->
     <script>
-        const videoElement  = document.getElementById('input_video');
-        const cursor        = document.getElementById('cursor');
-        const demoContainer = document.getElementById('demo-container');
-        const loadingText   = document.getElementById('loading');
-        const draggableBox  = document.getElementById('draggable-box');
-        const dropZone      = document.getElementById('drop-zone');
-        const resetBtn      = document.getElementById('reset-btn');
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoElement  = document.getElementById('input_video');
+            const cursor        = document.getElementById('cursor');
+            const demoContainer = document.getElementById('demo-container');
+            const loadingText   = document.getElementById('loading');
+            const draggableBox  = document.getElementById('draggable-box');
+            const dropZone      = document.getElementById('drop-zone');
+            const resetBtn      = document.getElementById('reset-btn');
 
-        const isMobile = window.innerWidth < 768 ||
-            /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+            const isMobile = window.innerWidth < 768 ||
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 
-        const cursorHalf = isMobile ? 8 : 12;
+            // Cursor half-size for centering — matches Tailwind w-4 (16px) / w-6 (24px)
+            const cursorHalf = isMobile ? 8 : 12;
 
-        let initBoxX = window.innerWidth >= 640 ? 32 : 24;
-        let initBoxY = window.innerWidth >= 640 ? 32 : 24;
+            // Initial box position — mirrors Tailwind top-6/left-6 (24px) and sm:top-8/left-8 (32px)
+            let initBoxX = window.innerWidth >= 640 ? 32 : 24;
+            let initBoxY = window.innerWidth >= 640 ? 32 : 24;
 
-        let cW = 1, cH = 1;
-        let bW = 0, bH = 0;
-        let dzL = 0, dzT = 0, dzW = 0, dzH = 0;
-        let rbL = 0, rbT = 0, rbR = 0, rbB = 0;
+            // ── Cached layout values (read once; avoids per-frame reflow) ──────────
+            let cW = 1, cH = 1;
+            let bW = 0, bH = 0;
+            let dzL = 0, dzT = 0, dzW = 0, dzH = 0;
+            let rbL = 0, rbT = 0, rbR = 0, rbB = 0;
 
-        function cacheLayout() {
-            const cr = demoContainer.getBoundingClientRect();
-            cW = cr.width;
-            cH = cr.height;
-            bW = draggableBox.offsetWidth;
-            bH = draggableBox.offsetHeight;
+            function cacheLayout() {
+                const cr = demoContainer.getBoundingClientRect();
+                cW = cr.width;   cH = cr.height;
+                bW = draggableBox.offsetWidth;
+                bH = draggableBox.offsetHeight;
 
-            const dz = dropZone.getBoundingClientRect();
-            dzL = dz.left - cr.left;   dzT = dz.top  - cr.top;
-            dzW = dz.width;            dzH = dz.height;
+                const dz = dropZone.getBoundingClientRect();
+                dzL = dz.left - cr.left;  dzT = dz.top - cr.top;
+                dzW = dz.width;           dzH = dz.height;
 
-            const rb = resetBtn.getBoundingClientRect();
-            rbL = rb.left  - cr.left;  rbT = rb.top    - cr.top;
-            rbR = rb.right - cr.left;  rbB = rb.bottom - cr.top;
-        }
-
-        let boxX = initBoxX;
-        let boxY = initBoxY;
-
-        let isDragging   = false;
-        let wasPinching  = false;
-        let loaderHidden = false;
-
-        let pCX         = 0;
-        let pCY         = 0;
-        let pBX         = 0;
-        let pBY         = 0;
-        let pHandFound  = false;
-        let pPinching   = false;
-        let pBoxDirty   = false;
-        let pBoxScale   = 1;
-        let pZone       = 'idle';
-        let pResetHover = false;
-        let rafPending  = false;
-
-        // LERP smoothing state
-        let smoothX      = 0;
-        let smoothY      = 0;
-        let isFirstFrame = true; // Prevents cursor snapping from 0,0 on first detection
-
-        const DZ_SHARED  = 'absolute w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8';
-        const DZ_IDLE    = DZ_SHARED + ' border-2 border-dashed border-lime-500/50 text-lime-200/50 bg-slate-800/80 transition-all duration-300';
-        const DZ_HOVER   = DZ_SHARED + ' border-4 border-lime-400 bg-lime-900/80 text-lime-300 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)] transition-all duration-200';
-        const DZ_SUCCESS = DZ_SHARED + ' border-4 border-green-400 bg-green-900/80 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.4)] transition-all duration-300';
-
-        let dzState = '';
-
-        function setDropZone(state) {
-            if (state === dzState) return;
-            dzState = state;
-            switch (state) {
-                case 'idle':    dropZone.className = DZ_IDLE;    dropZone.textContent = 'DROP HERE'; break;
-                case 'hover':   dropZone.className = DZ_HOVER;   dropZone.textContent = 'DROP HERE'; break;
-                case 'success': dropZone.className = DZ_SUCCESS; dropZone.textContent = 'SUCCESS';   break;
+                const rb = resetBtn.getBoundingClientRect();
+                rbL = rb.left  - cr.left;  rbT = rb.top    - cr.top;
+                rbR = rb.right - cr.left;  rbB = rb.bottom - cr.top;
             }
-        }
 
-        function render() {
-            rafPending = false;
+            // ── State ────────────────────────────────────────────────────────────────
+            let boxX = initBoxX, boxY = initBoxY;
+            let isDragging   = false;
+            let wasPinching  = false;
+            let loaderHidden = false;
 
-            if (!pHandFound) {
-                cursor.style.opacity = '0';
-                isFirstFrame = true; // Reset snap-guard when hand is lost
+            // EMA smoothing
+            let smoothX      = 0;
+            let smoothY      = 0;
+            let isFirstFrame = true;
+            const EMA        = 0.35; 
+
+            // ── Pending render state ────────────────────────────────────────────────
+            let pSX = 0, pSY = 0;      
+            let pBX = 0, pBY = 0;      
+            let pHandFound  = false;
+            let pPinching   = false;
+            let pBoxDirty   = false;
+            let pBoxScale   = 1;
+            let pZone       = 'idle';
+            let pResetHover = false;
+            let rafPending  = false;
+
+            // ── Pre-built drop zone class strings ───────────────────────────────────
+            const DZ_BASE    = 'absolute w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8';
+            const DZ_IDLE    = DZ_BASE + ' border-2 border-dashed border-lime-500/50 text-lime-200/50 bg-slate-800/80 transition-all duration-300';
+            const DZ_HOVER   = DZ_BASE + ' border-4 border-lime-400 bg-lime-900/80 text-lime-300 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)] transition-all duration-200';
+            const DZ_SUCCESS = DZ_BASE + ' border-4 border-green-400 bg-green-900/80 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.4)] transition-all duration-300';
+            let dzState = '';
+
+            function setDropZone(state) {
+                if (state === dzState) return;
+                dzState = state;
+                switch (state) {
+                    case 'idle':    dropZone.className = DZ_IDLE;    dropZone.textContent = 'DROP HERE'; break;
+                    case 'hover':   dropZone.className = DZ_HOVER;   dropZone.textContent = 'DROP HERE'; break;
+                    case 'success': dropZone.className = DZ_SUCCESS; dropZone.textContent = 'SUCCESS';   break;
+                }
+            }
+
+            // ── rAF render loop ──────────────────────────────────────────────────────
+            function render() {
+                rafPending = false;
+
+                if (!pHandFound) {
+                    cursor.style.opacity = '0';
+                    if (pBoxDirty) { pBoxDirty = false; boxX = pBX; boxY = pBY; }
+                    draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
+                    return;
+                }
+
+                cursor.style.transform       = `translate(${pSX - cursorHalf}px, ${pSY - cursorHalf}px)`;
+                cursor.style.opacity         = '1';
+                cursor.style.backgroundColor = pPinching ? '#facc15' : '#a3e635';
+                cursor.style.boxShadow       = pPinching
+                    ? '0 0 20px rgba(250,204,21,0.8)'
+                    : '0 0 15px rgba(163,230,53,0.8)';
 
                 if (pBoxDirty) { pBoxDirty = false; boxX = pBX; boxY = pBY; }
+                draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(${pBoxScale})`;
+
+                setDropZone(pZone);
+
+                if (pResetHover) resetBtn.classList.add('bg-white/30', 'scale-105');
+                else             resetBtn.classList.remove('bg-white/30', 'scale-105');
+            }
+
+            function scheduleRender() {
+                if (!rafPending) { rafPending = true; requestAnimationFrame(render); }
+            }
+
+            function doReset() {
+                boxX = initBoxX; boxY = initBoxY;
+                isDragging = false; pBoxDirty = false; pBoxScale = 1;
                 draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
-                return;
+                dzState = '';
+                setDropZone('idle');
             }
 
-            // EMA cursor smoothing — snap on first frame to avoid flying in from 0,0
-            if (isFirstFrame) {
-                smoothX = pCX;
-                smoothY = pCY;
-                isFirstFrame = false;
-            } else {
-                // 0.35 = balance between smoothness and responsiveness. Tweak as needed.
-                smoothX += (pCX - smoothX) * 0.35;
-                smoothY += (pCY - smoothY) * 0.35;
-            }
-
-            cursor.style.transform       = `translate(${smoothX - cursorHalf}px, ${smoothY - cursorHalf}px)`;
-            cursor.style.opacity         = '1';
-            cursor.style.backgroundColor = pPinching ? '#facc15' : '#a3e635';
-            cursor.style.boxShadow       = pPinching
-                ? '0 0 20px rgba(250,204,21,0.8)'
-                : '0 0 15px rgba(163,230,53,0.8)';
-
-            if (pBoxDirty) {
-                pBoxDirty = false;
-                boxX = pBX;
-                boxY = pBY;
-            }
-            draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(${pBoxScale})`;
-
-            setDropZone(pZone);
-
-            if (pResetHover) resetBtn.classList.add('bg-white/30', 'scale-105');
-            else             resetBtn.classList.remove('bg-white/30', 'scale-105');
-        }
-
-        function scheduleRender() {
-            if (!rafPending) { rafPending = true; requestAnimationFrame(render); }
-        }
-
-        function doReset() {
-            boxX       = initBoxX;
-            boxY       = initBoxY;
-            isDragging = false;
-            pBoxDirty  = false;
-            pBoxScale  = 1;
-            draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
-            dzState = '';
-            setDropZone('idle');
-        }
-
-        resetBtn.addEventListener('click', () => {
-            doReset();
-            resetBtn.classList.add('scale-95');
-            setTimeout(() => resetBtn.classList.remove('scale-95'), 200);
-        });
-
-        const hands = new Hands({
-            locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
-        });
-
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: isMobile ? 0 : 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-
-        hands.onResults(results => {
-            if (!loaderHidden) {
-                loaderHidden = true;
-                loadingText.style.opacity = '0';
-                setTimeout(() => { loadingText.style.display = 'none'; }, 500);
-            }
-
-            if (!results.multiHandLandmarks?.length) {
-                if (pHandFound || isDragging) {
-                    pHandFound  = false;
-                    isDragging  = false;
-                    wasPinching = false;
-                    pBoxScale   = 1;
-                    if (pZone !== 'success') pZone = 'idle';
-                    scheduleRender();
-                }
-                return;
-            }
-
-            const lm  = results.multiHandLandmarks[0];
-            const tip = lm[8];
-            const thb = lm[4];
-
-            const cx = (1 - tip.x) * cW;
-            const cy = tip.y * cH;
-
-            const pinching = Math.hypot(tip.x - thb.x, tip.y - thb.y) < 0.05;
-
-            const overReset = cx >= rbL && cx <= rbR && cy >= rbT && cy <= rbB;
-            pResetHover = overReset;
-
-            if (overReset && pinching && !wasPinching) {
+            resetBtn.addEventListener('click', () => {
                 doReset();
-            }
+                resetBtn.classList.add('scale-95');
+                setTimeout(() => resetBtn.classList.remove('scale-95'), 200);
+            });
 
-            if (pinching) {
-                const inBox = cx >= boxX && cx <= boxX + bW &&
-                              cy >= boxY && cy <= boxY + bH;
+            // ── MediaPipe ────────────────────────────────────────────────────────────
+            const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: isMobile ? 0 : 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
 
-                if (isDragging || inBox) {
-                    isDragging = true;
-                    pBX = Math.max(0, Math.min(cx - bW / 2, cW - bW));
-                    pBY = Math.max(0, Math.min(cy - bH / 2, cH - bH));
-                    pBoxDirty = true;
-                    pBoxScale = 1.05;
-
-                    const hit = !(pBX + bW < dzL || pBX > dzL + dzW ||
-                                   pBY + bH < dzT || pBY > dzT + dzH);
-                    pZone = hit ? 'hover' : 'idle';
+            hands.onResults(results => {
+                if (!loaderHidden) {
+                    loaderHidden = true;
+                    loadingText.style.opacity = '0';
+                    setTimeout(() => { loadingText.style.display = 'none'; }, 500);
                 }
-            } else {
-                if (isDragging) {
-                    const finalX = pBoxDirty ? pBX : boxX;
-                    const finalY = pBoxDirty ? pBY : boxY;
 
-                    const hit = !(finalX + bW < dzL || finalX > dzL + dzW ||
-                                   finalY + bH < dzT || finalY > dzT + dzH);
-                    if (hit) {
-                        pBX = dzL + (dzW - bW) / 2;
-                        pBY = dzT + (dzH - bH) / 2;
-                        pBoxDirty = true;
-                        pZone = 'success';
-                    } else {
-                        pZone = 'idle';
+                if (!results.multiHandLandmarks?.length) {
+                    if (pHandFound || isDragging) {
+                        pHandFound = false; isDragging = false; wasPinching = false; pBoxScale = 1;
+                        if (pZone !== 'success') pZone = 'idle';
+                        isFirstFrame = true; 
+                        scheduleRender();
                     }
-                    pBoxScale = 1;
+                    return;
                 }
-                isDragging = false;
-            }
 
-            pHandFound  = true;
-            pCX         = cx;
-            pCY         = cy;
-            pPinching   = pinching;
-            wasPinching = pinching;
+                const lm  = results.multiHandLandmarks[0];
+                const tip = lm[8]; 
+                const thb = lm[4]; 
 
-            scheduleRender();
+                const cx = (1 - tip.x) * cW; 
+                const cy = tip.y * cH;
+                const pinching = Math.hypot(tip.x - thb.x, tip.y - thb.y) < 0.05;
+
+                if (isFirstFrame) {
+                    smoothX = cx; smoothY = cy;
+                    isFirstFrame = false;
+                } else {
+                    smoothX += (cx - smoothX) * EMA;
+                    smoothY += (cy - smoothY) * EMA;
+                }
+
+                pResetHover = smoothX >= rbL && smoothX <= rbR && smoothY >= rbT && smoothY <= rbB;
+                if (pResetHover && pinching && !wasPinching) doReset();
+
+                if (pinching) {
+                    const inBox = smoothX >= boxX && smoothX <= boxX + bW &&
+                                  smoothY >= boxY && smoothY <= boxY + bH;
+                    if (isDragging || inBox) {
+                        isDragging = true;
+                        pBX = Math.max(0, Math.min(smoothX - bW / 2, cW - bW));
+                        pBY = Math.max(0, Math.min(smoothY - bH / 2, cH - bH));
+                        pBoxDirty = true;
+                        pBoxScale = 1.05;
+                        const hit = !(pBX + bW < dzL || pBX > dzL + dzW || pBY + bH < dzT || pBY > dzT + dzH);
+                        pZone = hit ? 'hover' : 'idle';
+                    }
+                } else {
+                    if (isDragging) {
+                        const fx = pBoxDirty ? pBX : boxX;
+                        const fy = pBoxDirty ? pBY : boxY;
+                        const hit = !(fx + bW < dzL || fx > dzL + dzW || fy + bH < dzT || fy > dzT + dzH);
+                        if (hit) {
+                            pBX = dzL + (dzW - bW) / 2;
+                            pBY = dzT + (dzH - bH) / 2;
+                            pBoxDirty = true;
+                            pZone = 'success';
+                        } else {
+                            pZone = 'idle';
+                        }
+                        pBoxScale = 1;
+                    }
+                    isDragging = false;
+                }
+
+                pHandFound  = true;
+                pSX         = smoothX;
+                pSY         = smoothY;
+                pPinching   = pinching;
+                wasPinching = pinching;
+                scheduleRender();
+            });
+
+            // ── Frame-throttled camera ───────────────────────────────────────────────
+            const FRAME_BUDGET = 1000 / (isMobile ? 20 : 60);
+            let lastFrameMs = 0;
+
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    const now = performance.now();
+                    if (now - lastFrameMs < FRAME_BUDGET) return;
+                    lastFrameMs = now;
+                    await hands.send({ image: videoElement });
+                },
+                width:  isMobile ? 320 : 640,
+                height: isMobile ? 240 : 480
+            });
+
+            draggableBox.style.top  = '0';
+            draggableBox.style.left = '0';
+            draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
+
+            requestAnimationFrame(() => { cacheLayout(); camera.start(); });
+
+            window.addEventListener('resize', () => {
+                initBoxX = window.innerWidth >= 640 ? 32 : 24;
+                initBoxY = window.innerWidth >= 640 ? 32 : 24;
+                setTimeout(() => { cacheLayout(); doReset(); }, 100);
+            }, { passive: true });
         });
-
-        // Frame throttle: prevents inference queue buildup on mobile
-        const TARGET_FPS   = isMobile ? 20 : 60;
-        const FRAME_BUDGET = 1000 / TARGET_FPS;
-        let   lastFrameMs  = 0;
-
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                const now = performance.now();
-                if (now - lastFrameMs < FRAME_BUDGET) return;
-                lastFrameMs = now;
-                await hands.send({ image: videoElement });
-            },
-            width:  isMobile ? 320 : 640,
-            height: isMobile ? 240 : 480
-        });
-
-        // Anchor box at top-left; all position updates go through transform
-        draggableBox.style.top  = '0';
-        draggableBox.style.left = '0';
-        draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
-
-        requestAnimationFrame(() => {
-            cacheLayout();
-            camera.start();
-        });
-
-        window.addEventListener('resize', () => {
-            initBoxX = window.innerWidth >= 640 ? 32 : 24;
-            initBoxY = window.innerWidth >= 640 ? 32 : 24;
-            setTimeout(() => { cacheLayout(); doReset(); }, 100);
-        }, { passive: true });
     </script>
 </body>
 </html>
