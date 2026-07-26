@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gesture Controls Project</title>
     
-    <!-- CSS: Replacing CDN with local compiled static file -->
-    <link href="./style.css" rel="stylesheet">
-    
     <!-- OPTIMIZATION: Preload critical gesture images to prevent layout flash -->
     <link rel="preload" as="image" href="Cursor_Mode.webp">
     <link rel="preload" as="image" href="Single_Double_Drag_Click.webp">
@@ -15,9 +12,42 @@
     <link rel="preload" as="image" href="Screenshot.webp">
     <link rel="preload" as="image" href="Frozen.webp">
     
+    <!-- Tailwind CSS CDN restored for simple copy/paste deployment -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            background-color: #f4f7f4;
+            color: #0f172a;
+        }
+
+        #cursor {
+            transition: background-color 0.15s, box-shadow 0.15s, opacity 0.2s;
+            will-change: transform;
+        }
+        
+        #draggable-box {
+            transition: background-color 0.2s, box-shadow 0.2s;
+            will-change: transform;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #ecfccb; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #a3e635; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #65a30d; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .touch-none { touch-action: none; }
+    </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col selection:bg-lime-200 selection:text-lime-900 overflow-x-hidden">
 
@@ -293,6 +323,7 @@
                 smoothY = pCY;
                 isFirstFrame = false;
             } else {
+                // Tweak this 0.35 factor if needed. Lower = smoother/laggier. Higher = responsive/jitterier.
                 smoothX += (pCX - smoothX) * 0.35;
                 smoothY += (pCY - smoothY) * 0.35;
             }
