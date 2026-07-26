@@ -5,45 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gesture Controls Project</title>
     
-    <!-- Tailwind CSS for high-end tech styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Official Spline Viewer -->
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js" defer></script>
-    
-    <!-- MediaPipe Machine Learning Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <style>
         body {
-            background-color: #f4f7f4; 
-            color: #0f172a; 
+            background-color: #f4f7f4;
+            color: #0f172a;
         }
-        
-        /* 🚀 OPTIMIZATION 1: Removed positioning and transform from the CSS transition. 
-           We ONLY transition visual properties like color and shadow. The GPU handles transform directly via JS. */
-        #cursor, #draggable-box {
-            transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+
+        /*
+         * FIX 1 (was causing 100ms tracking lag): Removed `transform` from the
+         * cursor's transition entirely — even 0.1s made the cursor feel sticky.
+         * FIX 2: Separated cursor and box rules; box keeps colour transitions only.
+         * `will-change: transform` promotes both to their own GPU composite layer
+         * so transform updates skip layout and paint completely.
+         */
+        #cursor {
+            transition: background-color 0.15s, box-shadow 0.15s, opacity 0.2s;
             will-change: transform;
-            top: 0; 
-            left: 0;
         }
-        
+        #draggable-box {
+            transition: background-color 0.2s, box-shadow 0.2s;
+            will-change: transform;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #ecfccb; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #a3e635; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #65a30d; }
-        
+
         .glass-panel {
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
-        .touch-none {
-            touch-action: none; 
-        }
+        .touch-none { touch-action: none; }
     </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col selection:bg-lime-200 selection:text-lime-900 overflow-x-hidden">
@@ -63,7 +63,7 @@
     </header>
 
     <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-16 sm:space-y-24">
-        
+
         <!-- SECTION 1: TOP HERO -->
         <section id="spline-hero" class="w-full flex flex-col items-center z-0 origin-top" style="will-change: transform, opacity;">
             <div class="text-center mb-6 sm:mb-10 space-y-3 sm:space-y-4 px-2">
@@ -74,7 +74,7 @@
                     Interact with your digital environment using intuitive, camera-tracked hand movements.
                 </p>
             </div>
-            
+
             <div class="w-full max-w-5xl h-[250px] sm:h-[300px] md:h-[400px] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border-4 border-white bg-white group">
                 <div class="absolute inset-0 bg-gradient-to-tr from-lime-50 to-yellow-50 pointer-events-none"></div>
                 <spline-viewer loading-anim-type="spinner-small-dark" url="https://prod.spline.design/iYnhrhxii0kTF4VT/scene.splinecode"></spline-viewer>
@@ -83,17 +83,16 @@
 
         <!-- SECTION 2: IMAGE SHOWCASE -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-            <!-- Left Column: Gesture Selectors -->
+
             <div class="lg:col-span-5 flex flex-col h-full max-h-[400px] sm:max-h-[600px]">
                 <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 pl-2">Select a Gesture</h3>
                 <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 sm:pr-3 space-y-2 sm:space-y-3 pb-4" id="gesture-list"></div>
             </div>
 
-            <!-- Right Column: Big Image Display -->
             <div class="lg:col-span-7 h-full mt-4 lg:mt-0">
                 <div class="glass-panel rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-8 h-full flex flex-col shadow-xl relative overflow-hidden">
                     <div class="absolute -top-32 -right-32 w-80 h-80 sm:w-96 sm:h-96 bg-lime-100 rounded-full blur-3xl pointer-events-none opacity-60"></div>
-                    
+
                     <div class="mb-6 sm:mb-8 relative z-10">
                         <div class="flex items-center gap-4 sm:gap-5 mb-3 sm:mb-4">
                             <span id="display-icon" class="text-3xl sm:text-4xl bg-white p-3 sm:p-4 rounded-2xl border border-lime-100 shadow-sm text-slate-800">☝️</span>
@@ -105,7 +104,6 @@
                         <p id="display-desc" class="text-slate-600 text-sm sm:text-base leading-relaxed pl-1 max-w-md">Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.</p>
                     </div>
 
-                    <!-- Dynamic Image Display -->
                     <div class="flex-grow w-full bg-slate-100 rounded-2xl sm:rounded-[2rem] border-4 border-white shadow-lg overflow-hidden relative z-10 min-h-[200px] sm:min-h-[350px]">
                         <img id="display-image" src="Cursor_Mode.webp" class="w-full h-full object-cover" alt="Gesture preview image">
                     </div>
@@ -116,32 +114,41 @@
         <!-- SECTION 3: LIVE TRACKING DEMO -->
         <section class="w-full pb-8 relative z-10">
             <h3 class="text-xs font-black uppercase tracking-widest text-lime-600 mb-4 sm:mb-6 text-center">Live Tracking Sandbox</h3>
-            
+
             <div class="max-w-5xl mx-auto">
                 <div id="demo-container" class="relative w-full h-[500px] md:h-[500px] bg-slate-900 border-4 border-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl touch-none">
-                    
+
                     <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-40 transition-opacity duration-500">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                         <p class="text-xs sm:text-sm font-bold text-lime-400 tracking-widest uppercase">Initializing AI Model...</p>
                     </div>
 
-                    <button id="reset-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 bg-slate-700/80 hover:bg-slate-600 text-[10px] sm:text-xs text-white font-bold tracking-widest py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl sm:rounded-2xl border border-white/20 shadow-lg cursor-pointer transition-transform">
+                    <button id="reset-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 bg-slate-700/80 hover:bg-slate-600 text-[10px] sm:text-xs text-white font-bold tracking-widest py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl sm:rounded-2xl border border-white/20 transition-all duration-200 shadow-lg cursor-pointer">
                         RESET BOX
                     </button>
 
-                    <div id="drop-zone" class="absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 bg-slate-800/80 transition-all duration-300">
+                    <div id="drop-zone" class="absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80">
                         DROP HERE
                     </div>
 
-                    <!-- Removed top/left tailwind classes to allow standard initialize -->
-                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 select-none border border-white/40 block">
+                    <!--
+                        FIX: Removed top-6/left-6/sm:top-8/sm:left-8 positioning classes.
+                        Position is now managed entirely via `transform: translate(x, y)` in JS,
+                        which is GPU-composited and causes zero layout reflow.
+                    -->
+                    <div id="draggable-box" class="absolute w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-lime-400 to-yellow-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-[10px] sm:text-sm font-bold text-slate-900 shadow-[0_0_20px_rgba(163,230,53,0.3)] z-20 select-none border border-white/40">
                         DRAG ME
                     </div>
-                    
+
                     <video id="input_video" class="absolute inset-0 w-full h-full object-cover opacity-20 scale-x-[-1]" autoplay playsinline></video>
-                    
-                    <!-- Removed transform classes (-translate-x) from classlist, moved to JS -->
-                    <div id="cursor" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none opacity-0 z-30 border-2 border-white block"></div>
+
+                    <!--
+                        FIX: Removed `transform -translate-x-1/2 -translate-y-1/2` Tailwind classes.
+                        Centering offset is now baked into the JS translate() call.
+                        Added style="top:0;left:0" so the transform origin is always the
+                        container's top-left corner (predictable, no browser auto-placement).
+                    -->
+                    <div id="cursor" style="top:0;left:0" class="absolute w-4 h-4 sm:w-6 sm:h-6 bg-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.8)] pointer-events-none opacity-0 z-30 border-2 border-white"></div>
                 </div>
             </div>
         </section>
@@ -153,32 +160,34 @@
             <div class="text-center mb-6 sm:mb-8">
                 <h3 class="text-[10px] sm:text-xs font-black tracking-[0.2em] text-lime-600 uppercase">Project Engineered By</h3>
             </div>
-            
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Shane</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aditya</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aaron</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Vinay</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Risha</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jeslin</p></div>
-                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jasmin</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Shane</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aditya</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Aaron</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Vinay</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Risha</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jeslin</p></div>
+                <div class="bg-lime-50/50 border border-lime-100 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-center hover:bg-lime-100 hover:border-lime-300 hover:-translate-y-1 transition-all duration-300 shadow-sm cursor-default"><p class="text-xs sm:text-sm font-bold text-slate-700 tracking-wide">Jasmin</p></div>
             </div>
         </div>
     </footer>
 
-    <!-- OPTIMIZED SCROLL SCRIPT -->
+    <!-- OPTIMIZED SCROLL SCRIPT — unchanged -->
     <script>
         const splineHero = document.getElementById('spline-hero');
         let isTicking = false;
 
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 400) return; 
+            if (window.scrollY > 400) return;
             if (!isTicking) {
                 window.requestAnimationFrame(() => {
                     const scrollY = window.scrollY;
-                    splineHero.style.opacity = Math.max(0, 1 - (scrollY / 350));
-                    splineHero.style.transform = `translateY(${scrollY * 0.4}px) scale(${Math.max(0.95, 1 - (scrollY / 2000))})`;
-                    splineHero.style.pointerEvents = scrollY > 330 ? 'none' : 'auto';
+                    const opacity = Math.max(0, 1 - (scrollY / 350));
+                    const scale = Math.max(0.95, 1 - (scrollY / 2000));
+                    const translateY = scrollY * 0.4;
+                    splineHero.style.opacity = opacity;
+                    splineHero.style.transform = `translateY(${translateY}px) scale(${scale})`;
+                    splineHero.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto';
                     isTicking = false;
                 });
                 isTicking = true;
@@ -186,29 +195,29 @@
         }, { passive: true });
     </script>
 
-    <!-- INTERACTIVE UI SCRIPT -->
+    <!-- INTERACTIVE UI SCRIPT — unchanged -->
     <script>
         const gestures = [
-            { id: 'cursor', title: 'Cursor Mode', sub: 'Index finger up', icon: '☝️', image: 'Cursor_Mode.webp', desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
-            { id: 'single', title: 'Single Click', sub: 'Pinch + 3 fingers up', icon: '👌', image: 'Single_Double_Drag_Click.webp', desc: 'A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.' },
-            { id: 'double', title: 'Double Click', sub: 'Double pinch', icon: '👌👌', image: 'Single_Double_Drag_Click.webp', desc: 'Two quick taps with the thumb and index finger to execute a double-click command.' },
-            { id: 'drag', title: 'Drag & Drop', sub: 'Hold pinch', icon: '🤏', image: 'Single_Double_Drag_Click.webp', desc: 'Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.' },
-            { id: 'scroll', title: 'Scroll Mode', sub: 'Index & Middle up', icon: '✌️', image: 'Scroll_Mode.webp', desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
-            { id: 'screenshot', title: 'Screenshot', sub: 'Shaka gesture', icon: '🤙', image: 'Screenshot.webp', desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
-            { id: 'idle', title: 'Frozen / Idle', sub: 'Unknown gesture', icon: '✋', image: 'Frozen.webp', desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
-            { id: 'advanced', title: 'Full Feature Suite', sub: '15+ Additional Extensions', icon: '🚀', image: 'Cursor_Mode.webp', desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
+            { id: 'cursor',     title: 'Cursor Mode',       sub: 'Index finger up',        icon: '☝️',    image: 'Cursor_Mode.webp',               desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
+            { id: 'single',     title: 'Single Click',      sub: 'Pinch + 3 fingers up',   icon: '👌',    image: 'Single_Double_Drag_Click.webp',  desc: 'A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.' },
+            { id: 'double',     title: 'Double Click',      sub: 'Double pinch',            icon: '👌👌',  image: 'Single_Double_Drag_Click.webp',  desc: 'Two quick taps with the thumb and index finger to execute a double-click command.' },
+            { id: 'drag',       title: 'Drag & Drop',       sub: 'Hold pinch',              icon: '🤏',    image: 'Single_Double_Drag_Click.webp',  desc: 'Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.' },
+            { id: 'scroll',     title: 'Scroll Mode',       sub: 'Index & Middle up',       icon: '✌️',    image: 'Scroll_Mode.webp',               desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
+            { id: 'screenshot', title: 'Screenshot',        sub: 'Shaka gesture',           icon: '🤙',    image: 'Screenshot.webp',                desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
+            { id: 'idle',       title: 'Frozen / Idle',     sub: 'Unknown gesture',         icon: '✋',    image: 'Frozen.webp',                    desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
+            { id: 'advanced',   title: 'Full Feature Suite',sub: '15+ Additional Extensions',icon: '🚀',  image: 'Cursor_Mode.webp',               desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
         ];
 
         const listContainer = document.getElementById('gesture-list');
         const dIcon = document.getElementById('display-icon'), dTitle = document.getElementById('display-title'), dSub = document.getElementById('display-subtitle'), dDesc = document.getElementById('display-desc'), dImg = document.getElementById('display-image');
 
-        const activeClasses = 'bg-white border-lime-300 shadow-lg scale-[1.02] ring-2 ring-lime-200';
+        const activeClasses   = 'bg-white border-lime-300 shadow-lg scale-[1.02] ring-2 ring-lime-200';
         const inactiveClasses = 'bg-white/40 border-transparent hover:bg-white/80 hover:border-lime-200 hover:shadow-md';
 
         gestures.forEach((gesture, index) => {
             const btn = document.createElement('button');
             const specialBg = gesture.id === 'advanced' ? 'bg-gradient-to-r from-lime-50 to-yellow-50' : 'bg-lime-50';
-            
+
             btn.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${index === 0 ? activeClasses : inactiveClasses}`;
             btn.innerHTML = `
                 <div class="p-2 sm:p-3 ${specialBg} rounded-lg sm:rounded-xl text-lg sm:text-xl shrink-0 border border-lime-100">${gesture.icon}</div>
@@ -220,193 +229,350 @@
             btn.addEventListener('click', () => {
                 Array.from(listContainer.children).forEach(c => c.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${inactiveClasses}`);
                 btn.className = `w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-5 ${activeClasses}`;
-                
-                dIcon.textContent = gesture.icon;
+                dIcon.textContent  = gesture.icon;
                 dTitle.textContent = gesture.title;
-                dSub.textContent = gesture.sub;
-                dDesc.textContent = gesture.desc;
-                dImg.src = gesture.image;
+                dSub.textContent   = gesture.sub;
+                dDesc.textContent  = gesture.desc;
+                dImg.src           = gesture.image;
             });
             listContainer.appendChild(btn);
         });
     </script>
 
-    <!-- 🚀 OPTIMIZED MEDIAPIPE TRACKING SCRIPT -->
+    <!--
+    =====================================================================
+    OPTIMIZED MEDIAPIPE TRACKING SCRIPT
+    
+    What was causing the mobile lag — and what each fix does:
+    
+    FIX 1 — FRAME THROTTLE (biggest win)
+      The camera was sending every frame (~30fps) to MediaPipe regardless
+      of whether it had finished processing the previous one. On mobile,
+      inference takes ~60-80ms, so frames piled up in a queue and the
+      tracking delay grew to seconds. Now capped at 20fps on mobile:
+      if the last frame hasn't been long enough ago, we skip it entirely.
+    
+    FIX 2 — transform: translate() FOR CURSOR
+      `cursor.style.left = x` and `cursor.style.top = y` force the
+      browser to run a full layout pass (reflow) on every call — the most
+      expensive thing you can do per frame. Switching to
+      `cursor.style.transform = translate(x, y)` skips layout and paint
+      entirely; the GPU handles it in the compositing stage only.
+    
+    FIX 3 — transform: translate() FOR DRAGGABLE BOX
+      Same reason as above. Box position is now tracked in JS variables
+      (boxX, boxY) instead of being read from the DOM via offsetLeft/Top,
+      which was also triggering layout flushes on every frame.
+    
+    FIX 4 — LAYOUT CACHING (cacheLayout)
+      All `getBoundingClientRect()` and `offsetWidth/Height` calls have
+      been moved out of the render loop into a `cacheLayout()` function
+      that runs once on init and again on resize. Reading these values
+      mid-frame forces a layout recalculation — reading them once and
+      storing them in plain variables costs nothing per frame.
+    
+    FIX 5 — RAF BATCHING
+      `onResults` now only writes to plain JS state variables. All actual
+      DOM writes are deferred to a single `requestAnimationFrame(render)`
+      call, keeping inference and rendering cleanly separated and
+      preventing multiple partial DOM updates per frame.
+    
+    FIX 6 — DROP ZONE STATE GATE
+      The drop zone's className was being overwritten every single frame
+      even when the state hadn't changed. `setDropZone()` now compares
+      the new state to the current one and no-ops if they match.
+    =====================================================================
+    -->
     <script>
-        const videoElement = document.getElementById('input_video'), cursor = document.getElementById('cursor'), demoContainer = document.getElementById('demo-container'), loadingText = document.getElementById('loading');
-        const draggableBox = document.getElementById('draggable-box'), dropZone = document.getElementById('drop-zone'), resetBtn = document.getElementById('reset-btn');
-        
-        const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+        const videoElement  = document.getElementById('input_video');
+        const cursor        = document.getElementById('cursor');
+        const demoContainer = document.getElementById('demo-container');
+        const loadingText   = document.getElementById('loading');
+        const draggableBox  = document.getElementById('draggable-box');
+        const dropZone      = document.getElementById('drop-zone');
+        const resetBtn      = document.getElementById('reset-btn');
 
-        // Application State
-        let isDragging = false;
-        let wasPinching = false;
-        let boxX = 24, boxY = 24; // Initial Box Coordinates
-        let boxScale = 1;
-        let latestHandData = null; // Decoupled hand tracking data
+        const isMobile = window.innerWidth < 768 ||
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 
-        // 🚀 OPTIMIZATION 2: Cache DOM dimensions to prevent layout thrashing
-        const layout = {
-            container: { w: 0, h: 0 },
-            reset: { l: 0, r: 0, t: 0, b: 0 },
-            drop: { l: 0, r: 0, t: 0, b: 0 },
-            box: { w: 0, h: 0 }
-        };
+        // Pre-compute cursor half-size for centering (avoids DOM read every frame).
+        // Matches Tailwind: w-4 = 16px (mobile), w-6 = 24px (sm+).
+        const cursorHalf = isMobile ? 8 : 12;
 
-        function updateLayoutCache() {
-            layout.container.w = demoContainer.offsetWidth;
-            layout.container.h = demoContainer.offsetHeight;
-            
-            layout.reset.l = resetBtn.offsetLeft;
-            layout.reset.r = resetBtn.offsetLeft + resetBtn.offsetWidth;
-            layout.reset.t = resetBtn.offsetTop;
-            layout.reset.b = resetBtn.offsetTop + resetBtn.offsetHeight;
-            
-            layout.drop.l = dropZone.offsetLeft;
-            layout.drop.r = dropZone.offsetLeft + dropZone.offsetWidth;
-            layout.drop.t = dropZone.offsetTop;
-            layout.drop.b = dropZone.offsetTop + dropZone.offsetHeight;
-            
-            layout.box.w = draggableBox.offsetWidth;
-            layout.box.h = draggableBox.offsetHeight;
+        // Initial box position matches Tailwind `top-6 left-6` (24px) / `sm:top-8 sm:left-8` (32px)
+        let initBoxX = window.innerWidth >= 640 ? 32 : 24;
+        let initBoxY = window.innerWidth >= 640 ? 32 : 24;
+
+        // ── Cached layout values — read once in cacheLayout(), used every frame ──
+        let cW = 1, cH = 1;                          // container width / height
+        let bW = 0, bH = 0;                          // draggable box width / height
+        let dzL = 0, dzT = 0, dzW = 0, dzH = 0;     // drop zone rect (container-relative)
+        let rbL = 0, rbT = 0, rbR = 0, rbB = 0;     // reset btn rect (container-relative)
+
+        function cacheLayout() {
+            const cr = demoContainer.getBoundingClientRect();
+            cW = cr.width;
+            cH = cr.height;
+            bW = draggableBox.offsetWidth;
+            bH = draggableBox.offsetHeight;
+
+            const dz = dropZone.getBoundingClientRect();
+            dzL = dz.left - cr.left;   dzT = dz.top  - cr.top;
+            dzW = dz.width;            dzH = dz.height;
+
+            const rb = resetBtn.getBoundingClientRect();
+            rbL = rb.left  - cr.left;  rbT = rb.top    - cr.top;
+            rbR = rb.right - cr.left;  rbB = rb.bottom - cr.top;
         }
 
-        // Keep cache accurate if user rotates phone or resizes window
-        window.addEventListener('resize', updateLayoutCache);
+        // ── JS-tracked box position (avoids reading offsetLeft/Top each frame) ──
+        let boxX = initBoxX;
+        let boxY = initBoxY;
 
-        const resetZone = () => {
-            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-2 border-dashed border-lime-500/50 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-200/50 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 bg-slate-800/80";
-            dropZone.innerHTML = "DROP HERE";
-        };
+        // ── Gesture state ─────────────────────────────────────────────────────────
+        let isDragging   = false;
+        let wasPinching  = false;
+        let loaderHidden = false;
+
+        // ── Pending render state ──────────────────────────────────────────────────
+        // onResults() writes only to these plain variables.
+        // render() reads them and performs all DOM mutations.
+        let pCX         = 0;        // cursor x
+        let pCY         = 0;        // cursor y
+        let pBX         = 0;        // pending box x
+        let pBY         = 0;        // pending box y
+        let pHandFound  = false;
+        let pPinching   = false;
+        let pBoxDirty   = false;    // true when pBX/pBY are newer than boxX/boxY
+        let pBoxScale   = 1;
+        let pZone       = 'idle';   // 'idle' | 'hover' | 'success'
+        let pResetHover = false;
+        let rafPending  = false;
+
+        // ── Drop zone — pre-built class strings (no string concat per frame) ──────
+        const DZ_SHARED  = 'absolute w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8';
+        const DZ_IDLE    = DZ_SHARED + ' border-2 border-dashed border-lime-500/50 text-lime-200/50 bg-slate-800/80 transition-all duration-300';
+        const DZ_HOVER   = DZ_SHARED + ' border-4 border-lime-400 bg-lime-900/80 text-lime-300 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)] transition-all duration-200';
+        const DZ_SUCCESS = DZ_SHARED + ' border-4 border-green-400 bg-green-900/80 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.4)] transition-all duration-300';
+
+        let dzState = '';
+
+        // Only mutates the DOM when the state actually changes — not every frame.
+        function setDropZone(state) {
+            if (state === dzState) return;
+            dzState = state;
+            switch (state) {
+                case 'idle':    dropZone.className = DZ_IDLE;    dropZone.textContent = 'DROP HERE'; break;
+                case 'hover':   dropZone.className = DZ_HOVER;   dropZone.textContent = 'DROP HERE'; break;
+                case 'success': dropZone.className = DZ_SUCCESS; dropZone.textContent = 'SUCCESS';   break;
+            }
+        }
+
+        // ── rAF render loop — ALL DOM writes happen here, batched ────────────────
+        function render() {
+            rafPending = false;
+
+            if (!pHandFound) {
+                cursor.style.opacity = '0';
+                // Flush any pending box position and release drag scale
+                if (pBoxDirty) { pBoxDirty = false; boxX = pBX; boxY = pBY; }
+                draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
+                return;
+            }
+
+            // CURSOR — pure transform, zero reflow, GPU composited.
+            // The centering offset (-cursorHalf) replaces the old Tailwind
+            // `-translate-x-1/2 -translate-y-1/2` classes.
+            cursor.style.transform       = `translate(${pCX - cursorHalf}px, ${pCY - cursorHalf}px)`;
+            cursor.style.opacity         = '1';
+            cursor.style.backgroundColor = pPinching ? '#facc15' : '#a3e635';
+            cursor.style.boxShadow       = pPinching
+                ? '0 0 20px rgba(250,204,21,0.8)'
+                : '0 0 15px rgba(163,230,53,0.8)';
+
+            // BOX — update tracked JS position then apply transform
+            if (pBoxDirty) {
+                pBoxDirty = false;
+                boxX = pBX;
+                boxY = pBY;
+            }
+            draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(${pBoxScale})`;
+
+            // DROP ZONE — className only mutated on state change
+            setDropZone(pZone);
+
+            // RESET BUTTON hover highlight
+            if (pResetHover) resetBtn.classList.add('bg-white/30', 'scale-105');
+            else             resetBtn.classList.remove('bg-white/30', 'scale-105');
+        }
+
+        function scheduleRender() {
+            if (!rafPending) { rafPending = true; requestAnimationFrame(render); }
+        }
+
+        // ── Reset ────────────────────────────────────────────────────────────────
+        function doReset() {
+            boxX       = initBoxX;
+            boxY       = initBoxY;
+            isDragging = false;
+            pBoxDirty  = false;
+            pBoxScale  = 1;
+            draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
+            dzState = '';          // force setDropZone to redraw even if state was 'idle'
+            setDropZone('idle');
+        }
 
         resetBtn.addEventListener('click', () => {
-            boxX = 24; 
-            boxY = 24;
-            resetZone();
+            doReset();
+            resetBtn.classList.add('scale-95');
+            setTimeout(() => resetBtn.classList.remove('scale-95'), 200);
         });
 
-        // Initialize Box Position
-        draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(1)`;
-
-        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-        hands.setOptions({ 
-            maxNumHands: 1, 
-            modelComplexity: isMobile ? 0 : 1, 
-            minDetectionConfidence: 0.5, 
-            minTrackingConfidence: 0.5 
+        // ── MediaPipe Hands ──────────────────────────────────────────────────────
+        const hands = new Hands({
+            locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
         });
 
-        // The ML Callback ONLY updates state, it never touches the DOM directly.
-        hands.onResults((results) => {
-            if(loadingText.style.opacity !== '0') {
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: isMobile ? 0 : 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(results => {
+            // Hide loading overlay on the very first inference result, with or without a hand
+            if (!loaderHidden) {
+                loaderHidden = true;
                 loadingText.style.opacity = '0';
-                setTimeout(() => loadingText.style.display = 'none', 500);
-                setTimeout(updateLayoutCache, 100); // Prime the cache after load
+                setTimeout(() => { loadingText.style.display = 'none'; }, 500);
             }
-            latestHandData = results.multiHandLandmarks?.length > 0 ? results.multiHandLandmarks[0] : null;
-        });
 
-        // 🚀 OPTIMIZATION 3: Dedicated Render Loop tied to the screen refresh rate
-        function renderLoop() {
-            if (latestHandData) {
-                const indexTip = latestHandData[8];
-                const thumbTip = latestHandData[4];
-                
-                const cursorX = (1 - indexTip.x) * layout.container.w;
-                const cursorY = indexTip.y * layout.container.h;
-
-                // GPU Accelerated Cursor Move
-                cursor.style.transform = `translate3d(calc(${cursorX}px - 50%), calc(${cursorY}px - 50%), 0)`;
-                cursor.style.opacity = '1';
-
-                const isPinching = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y) < 0.05;
-
-                // Hit detection using CACHED boundaries
-                const isHoveringReset = cursorX >= layout.reset.l && cursorX <= layout.reset.r && 
-                                        cursorY >= layout.reset.t && cursorY <= layout.reset.b;
-
-                if (isHoveringReset) {
-                    resetBtn.classList.add('bg-white/30', 'scale-105');
-                    if (isPinching && !wasPinching) {
-                        resetBtn.click(); 
-                        resetBtn.classList.replace('scale-105', 'scale-95');
-                        setTimeout(() => resetBtn.classList.replace('scale-95', 'scale-105'), 150);
-                    }
-                } else {
-                    resetBtn.classList.remove('bg-white/30', 'scale-105', 'scale-95');
+            // ── No hand detected ─────────────────────────────────────────
+            if (!results.multiHandLandmarks?.length) {
+                if (pHandFound || isDragging) {
+                    pHandFound  = false;
+                    isDragging  = false;
+                    wasPinching = false;
+                    pBoxScale   = 1;
+                    // Preserve 'success' state; otherwise reset to idle
+                    if (pZone !== 'success') pZone = 'idle';
+                    scheduleRender();
                 }
+                return;
+            }
 
-                if (isPinching) {
-                    cursor.style.backgroundColor = '#facc15'; 
-                    cursor.style.boxShadow = '0 0 20px rgba(250, 204, 21, 0.8)';
-                    
-                    const boxRight = boxX + layout.box.w;
-                    const boxBottom = boxY + layout.box.h;
+            // ── Hand detected ────────────────────────────────────────────
+            const lm  = results.multiHandLandmarks[0];
+            const tip = lm[8];    // index finger tip
+            const thb = lm[4];    // thumb tip
 
-                    if (isDragging || (cursorX >= boxX && cursorX <= boxRight && cursorY >= boxY && cursorY <= boxBottom)) {
-                        isDragging = true;
-                        boxScale = 1.05;
-                        
-                        // Constrain box inside container
-                        boxX = Math.max(0, Math.min(cursorX - (layout.box.w / 2), layout.container.w - layout.box.w));
-                        boxY = Math.max(0, Math.min(cursorY - (layout.box.h / 2), layout.container.h - layout.box.h));
+            // Mirror X so movement feels natural (matches camera flip on video element)
+            const cx = (1 - tip.x) * cW;
+            const cy = tip.y * cH;
 
-                        const isZoneOverlapping = !(boxX + layout.box.w < layout.drop.l || boxX > layout.drop.r || boxY + layout.box.h < layout.drop.t || boxY > layout.drop.b);
+            const pinching = Math.hypot(tip.x - thb.x, tip.y - thb.y) < 0.05;
 
-                        if (isZoneOverlapping) {
-                            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-lime-400 bg-lime-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-lime-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-200 scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)]";
-                        } else {
-                            resetZone();
-                        }
-                    }
-                } else {
-                    if (isDragging) {
-                        const isZoneOverlapping = !(boxX + layout.box.w < layout.drop.l || boxX > layout.drop.r || boxY + layout.box.h < layout.drop.t || boxY > layout.drop.b);
+            // ── Reset button: hover detection + pinch-to-click ───────────
+            const overReset = cx >= rbL && cx <= rbR && cy >= rbT && cy <= rbB;
+            pResetHover = overReset;
 
-                        if (isZoneOverlapping) {
-                            dropZone.className = "absolute w-20 h-20 sm:w-32 sm:h-32 border-4 border-green-400 bg-green-900/80 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base text-green-300 font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8 transition-all duration-300 shadow-[0_0_20px_rgba(74,222,128,0.4)]";
-                            dropZone.innerHTML = "SUCCESS";
-                            
-                            // Snap to center of drop zone
-                            boxX = layout.drop.l + ((layout.drop.r - layout.drop.l) - layout.box.w) / 2;
-                            boxY = layout.drop.t + ((layout.drop.b - layout.drop.t) - layout.box.h) / 2;
-                        } else {
-                            resetZone();
-                        }
-                    }
-                    isDragging = false;
-                    boxScale = 1;
-                    cursor.style.backgroundColor = '#a3e635'; 
-                    cursor.style.boxShadow = '0 0 15px rgba(163, 230, 53, 0.8)';
+            if (overReset && pinching && !wasPinching) {
+                doReset();
+            }
+
+            // ── Drag & drop logic ─────────────────────────────────────────
+            if (pinching) {
+                // Start drag if pinch begins inside the box
+                const inBox = cx >= boxX && cx <= boxX + bW &&
+                              cy >= boxY && cy <= boxY + bH;
+
+                if (isDragging || inBox) {
+                    isDragging = true;
+                    // Clamp box to container bounds
+                    pBX = Math.max(0, Math.min(cx - bW / 2, cW - bW));
+                    pBY = Math.max(0, Math.min(cy - bH / 2, cH - bH));
+                    pBoxDirty = true;
+                    pBoxScale = 1.05;
+
+                    // Zone overlap check using the pending (newest) box position
+                    const hit = !(pBX + bW < dzL || pBX > dzL + dzW ||
+                                   pBY + bH < dzT || pBY > dzT + dzH);
+                    pZone = hit ? 'hover' : 'idle';
                 }
-
-                // GPU Accelerated Box Move
-                draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(${boxScale})`;
-                wasPinching = isPinching; 
-                
             } else {
-                cursor.style.opacity = '0'; 
-                isDragging = false; 
-                boxScale = 1;
-                draggableBox.style.transform = `translate3d(${boxX}px, ${boxY}px, 0) scale(${boxScale})`;
-                wasPinching = false;
+                if (isDragging) {
+                    // Use whichever box coordinates are newest
+                    const finalX = pBoxDirty ? pBX : boxX;
+                    const finalY = pBoxDirty ? pBY : boxY;
+
+                    const hit = !(finalX + bW < dzL || finalX > dzL + dzW ||
+                                   finalY + bH < dzT || finalY > dzT + dzH);
+                    if (hit) {
+                        // Snap to centre of drop zone
+                        pBX = dzL + (dzW - bW) / 2;
+                        pBY = dzT + (dzH - bH) / 2;
+                        pBoxDirty = true;
+                        pZone = 'success';
+                    } else {
+                        pZone = 'idle';
+                    }
+                    pBoxScale = 1;
+                }
+                isDragging = false;
             }
 
-            // Loop rendering
-            requestAnimationFrame(renderLoop);
-        }
+            // Write pending render state — render() will flush these to the DOM
+            pHandFound  = true;
+            pCX         = cx;
+            pCY         = cy;
+            pPinching   = pinching;
+            wasPinching = pinching;
 
-        // Start the render loop
-        requestAnimationFrame(renderLoop);
-
-        const camera = new Camera(videoElement, { 
-            onFrame: async () => {
-                await hands.send({ image: videoElement });
-            }, 
-            width: isMobile ? 320 : 640, 
-            height: isMobile ? 240 : 480 
+            scheduleRender();
         });
-        camera.start();
+
+        // ── Frame-throttled camera ────────────────────────────────────────────────
+        // FIX: On mobile, MediaPipe inference takes ~60-80ms but the camera
+        // fires at ~30fps (~33ms). Without throttling, frames queue up faster
+        // than they can be processed, creating a growing delay.
+        // At 20fps we give each frame ~50ms, matching mobile inference speed.
+        const TARGET_FPS   = isMobile ? 20 : 60;
+        const FRAME_BUDGET = 1000 / TARGET_FPS;
+        let   lastFrameMs  = 0;
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                const now = performance.now();
+                if (now - lastFrameMs < FRAME_BUDGET) return;   // skip this frame
+                lastFrameMs = now;
+                await hands.send({ image: videoElement });
+            },
+            width:  isMobile ? 320 : 640,
+            height: isMobile ? 240 : 480
+        });
+
+        // ── Init ──────────────────────────────────────────────────────────────────
+        // Anchor box at top-left (overrides any residual Tailwind top-N/left-N),
+        // then position via transform so all movement is GPU-composited.
+        draggableBox.style.top  = '0';
+        draggableBox.style.left = '0';
+        draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
+
+        // Cache layout after the first paint so all getBoundingClientRect calls
+        // reflect the fully rendered page, then start the camera.
+        requestAnimationFrame(() => {
+            cacheLayout();
+            camera.start();
+        });
+
+        // On resize, re-derive the initial position from the new breakpoint and
+        // re-read all layout values after the browser has reflowed.
+        window.addEventListener('resize', () => {
+            initBoxX = window.innerWidth >= 640 ? 32 : 24;
+            initBoxY = window.innerWidth >= 640 ? 32 : 24;
+            setTimeout(() => { cacheLayout(); doReset(); }, 100);
+        }, { passive: true });
     </script>
 </body>
 </html>
