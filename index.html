@@ -185,14 +185,14 @@
 
     <script>
         const gestures = [
-            { id: 'cursor',     title: 'Cursor Mode',       sub: 'Index finger up',        icon: '☝️',    image: 'Cursor_Mode.webp',               desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
-            { id: 'single',     title: 'Single Click',      sub: 'Pinch + 3 fingers up',   icon: '👌',    image: 'Single_Double_Drag_Click.webp',  desc: 'A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.' },
-            { id: 'double',     title: 'Double Click',      sub: 'Double pinch',           icon: '👌👌',  image: 'Single_Double_Drag_Click.webp',  desc: 'Two quick taps with the thumb and index finger to execute a double-click command.' },
-            { id: 'drag',       title: 'Drag & Drop',       sub: 'Hold pinch',             icon: '🤏',    image: 'Single_Double_Drag_Click.webp',  desc: 'Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.' },
-            { id: 'scroll',     title: 'Scroll Mode',       sub: 'Index & Middle up',       icon: '✌️',    image: 'Scroll_Mode.webp',               desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
-            { id: 'screenshot', title: 'Screenshot',        sub: 'Shaka gesture',           icon: '🤙',    image: 'Screenshot.webp',                desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
-            { id: 'idle',       title: 'Frozen / Idle',     sub: 'Unknown gesture',         icon: '✋',    image: 'Frozen.webp',                    desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
-            { id: 'advanced',   title: 'Full Feature Suite',sub: '15+ Additional Extensions',icon: '🚀',  image: 'Cursor_Mode.webp',               desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
+            { id: 'cursor',     title: 'Cursor Mode',        sub: 'Index finger up',         icon: '☝️',   image: 'Cursor_Mode.webp',              desc: 'Moves your mouse cursor smoothly within an Active Control Region to reduce wrist strain.' },
+            { id: 'single',     title: 'Single Click',       sub: 'Pinch + 3 fingers up',    icon: '👌',   image: 'Single_Double_Drag_Click.webp', desc: 'A quick tap and release to left-click. The 3 back fingers act as a "safety switch" to prevent accidental misfires.' },
+            { id: 'double',     title: 'Double Click',       sub: 'Double pinch',            icon: '👌👌', image: 'Single_Double_Drag_Click.webp', desc: 'Two quick taps with the thumb and index finger to execute a double-click command.' },
+            { id: 'drag',       title: 'Drag & Drop',        sub: 'Hold pinch',              icon: '🤏',   image: 'Single_Double_Drag_Click.webp', desc: 'Hold the pinch for ~0.45 seconds to lock the mouse button down. Open the pinch to drop.' },
+            { id: 'scroll',     title: 'Scroll Mode',        sub: 'Index & Middle up',       icon: '✌️',   image: 'Scroll_Mode.webp',              desc: 'Freezes the cursor in place. Moving your palm up or down infinitely scrolls the active window.' },
+            { id: 'screenshot', title: 'Screenshot',         sub: 'Shaka gesture',           icon: '🤙',   image: 'Screenshot.webp',               desc: 'Triggers a 3-second UI countdown, flashes the screen, and safely saves a screenshot to the disk.' },
+            { id: 'idle',       title: 'Frozen / Idle',      sub: 'Unknown gesture',         icon: '✋',   image: 'Frozen.webp',                   desc: 'Instantly freezes the cursor and safely drops any active drags if the tracking is lost.' },
+            { id: 'advanced',   title: 'Full Feature Suite', sub: '15+ Additional Extensions',icon: '🚀',  image: 'Cursor_Mode.webp',              desc: 'The core engine supports a robust library of advanced controls—including media playback, volume mapping, multi-monitor spanning, and customizable macros—demonstrating a highly scalable touchless ecosystem.' }
         ];
 
         const listContainer = document.getElementById('gesture-list');
@@ -282,11 +282,11 @@
         let pZone       = 'idle';
         let pResetHover = false;
         let rafPending  = false;
-        
-        // OPTIMIZATION: LERP variables state
-        let smoothX = 0;
-        let smoothY = 0;
-        let isFirstFrame = true; // Prevents cursor from flying in from 0,0 on first detection
+
+        // LERP smoothing state
+        let smoothX      = 0;
+        let smoothY      = 0;
+        let isFirstFrame = true; // Prevents cursor snapping from 0,0 on first detection
 
         const DZ_SHARED  = 'absolute w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl flex items-center justify-center text-[10px] sm:text-base font-bold z-10 bottom-6 right-6 sm:bottom-8 sm:right-8';
         const DZ_IDLE    = DZ_SHARED + ' border-2 border-dashed border-lime-500/50 text-lime-200/50 bg-slate-800/80 transition-all duration-300';
@@ -310,20 +310,20 @@
 
             if (!pHandFound) {
                 cursor.style.opacity = '0';
-                isFirstFrame = true; // Reset snap flag when hand is lost
-                
+                isFirstFrame = true; // Reset snap-guard when hand is lost
+
                 if (pBoxDirty) { pBoxDirty = false; boxX = pBX; boxY = pBY; }
                 draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
                 return;
             }
 
-            // OPTIMIZATION: Exponential Moving Average (EMA) cursor smoothing
+            // EMA cursor smoothing — snap on first frame to avoid flying in from 0,0
             if (isFirstFrame) {
                 smoothX = pCX;
                 smoothY = pCY;
                 isFirstFrame = false;
             } else {
-                // Tweak this 0.35 factor if needed. Lower = smoother/laggier. Higher = responsive/jitterier.
+                // 0.35 = balance between smoothness and responsiveness. Tweak as needed.
                 smoothX += (pCX - smoothX) * 0.35;
                 smoothY += (pCY - smoothY) * 0.35;
             }
@@ -459,6 +459,7 @@
             scheduleRender();
         });
 
+        // Frame throttle: prevents inference queue buildup on mobile
         const TARGET_FPS   = isMobile ? 20 : 60;
         const FRAME_BUDGET = 1000 / TARGET_FPS;
         let   lastFrameMs  = 0;
@@ -474,6 +475,7 @@
             height: isMobile ? 240 : 480
         });
 
+        // Anchor box at top-left; all position updates go through transform
         draggableBox.style.top  = '0';
         draggableBox.style.left = '0';
         draggableBox.style.transform = `translate(${boxX}px, ${boxY}px) scale(1)`;
